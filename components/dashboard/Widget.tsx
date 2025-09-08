@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
 export interface WidgetProps {
@@ -17,12 +16,12 @@ export function Widget({ id, title, children, onRemove, className }: WidgetProps
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle className="text-lg font-semibold">{title}</CardTitle>
         {onRemove && (
-          <Button
+          <button
             onClick={() => onRemove(id)}
             className="h-6 w-6 p-0 hover:bg-destructive/10"
           >
             <X className="h-4 w-4" />
-          </Button>
+          </button>
         )}
       </CardHeader>
       <CardContent>{children}</CardContent>
