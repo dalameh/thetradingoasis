@@ -2,7 +2,19 @@
 
 import React, { memo } from "react";
 import SetupMenu from "./SetupMenu";
-import { Setup } from "@/types/Setup";
+export type Setup = {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string;
+  rules: string[];
+  type: string;
+  market: string;
+  conditions: string;
+  created_at: string;
+  win_rate?: number;
+  avg_return?: number | string;
+};
 
 type SetupItemProps = {
   setup: Setup;

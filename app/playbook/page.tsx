@@ -1,7 +1,19 @@
 import PageHeader from "@/components/PageHeader";
 import SetupsList from "@/components/PlaybookClient/SetupsList";
 import { supabaseServer } from "@/lib/supabaseServerSideClient";
-import { Setup } from "@/types/Setup";
+export type Setup = {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string;
+  rules: string[];
+  type: string;
+  market: string;
+  conditions: string;
+  created_at: string;
+  win_rate?: number;
+  avg_return?: number | string;
+};
 
 export default async function PlaybookPage() {
   const setups: Setup[] = await fetchUserSetups();
