@@ -1,5 +1,4 @@
 import PageHeader from '@/components/PageHeader'
-import EarningsTable from '@/components/dashboard/Widgets/EarningsTable'
 
 export default function PredictionPage() {
   return (

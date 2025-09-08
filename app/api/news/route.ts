@@ -53,8 +53,9 @@ export async function GET(request: Request) {
         date: item.dateObj ? item.dateObj.toLocaleString() : '',
       }));
     return NextResponse.json({ news: simplified });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to fetch news' }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

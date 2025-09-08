@@ -35,7 +35,7 @@ const pages = [
 
 export default function Navigation({
   collapsed,
-  setCollapsed,
+  // setCollapsed,
 }: {
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;

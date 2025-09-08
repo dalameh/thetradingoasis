@@ -18,14 +18,29 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-const initialWidgets = [
+// Define widget type
+interface Widget {
+  id: string;
+  href: string;
+  emoji: string;
+  label: string;
+  bgColor: string;
+  hoverColor: string;
+}
+
+interface SortableItemProps extends Widget {
+  disabled?: boolean;
+}
+
+const initialWidgets: Widget[] = [
   { id: "charts", href: "/charts", emoji: "📊", label: "Charts", bgColor: "bg-blue-50", hoverColor: "hover:bg-blue-100" },
   { id: "addTrade", href: "/diary?add=true", emoji: "📝", label: "Add Trade", bgColor: "bg-green-50", hoverColor: "hover:bg-green-100" },
   { id: "watchlist", href: "/watchlist", emoji: "👁️", label: "Add to Watchlist", bgColor: "bg-purple-50", hoverColor: "hover:bg-purple-100" },
   { id: "addSetup", href: "/playbook?create=true", emoji: "📋", label: "Add Setup", bgColor: "bg-orange-50", hoverColor: "hover:bg-orange-100" },
 ];
 
-function SortableItem({ id, href, emoji, label, bgColor, hoverColor, disabled }: any) {
+
+function SortableItem({ id, href, emoji, label, bgColor, hoverColor, disabled }: SortableItemProps) {
   const {
     attributes,
     listeners,

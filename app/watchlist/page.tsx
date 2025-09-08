@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 
 export default function WatchlistPage() {
   const router = useRouter();
-  const { watchlist, loading, addTicker, removeTicker } = useWatchlistStore();
+  const { watchlist, addTicker, removeTicker } = useWatchlistStore();
 
   const [showAdd, setShowAdd] = useState(false);
   const [input, setInput] = useState('');

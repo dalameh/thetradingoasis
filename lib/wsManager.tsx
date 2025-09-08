@@ -1,7 +1,8 @@
 // wsManager.ts
-// Create a Relay so that all browser clients go to one finnhub socket for deployment
+// Relay so all browser clients share one Finnhub socket
 
-type Listener = (msg: any) => void;
+export type WSMessage = Record<string, unknown>;
+type Listener = (msg: WSMessage) => void;
 
 export class WSManager {
   private ws: WebSocket | null = null;
@@ -15,9 +16,9 @@ export class WSManager {
       try {
         const res = await fetch("/api/wsfinnhub");
         if (!res.ok) throw new Error("Failed to fetch WS URL");
-        const data = await res.json();
+        const data: { wsUrl: string } = await res.json();
         this.wsUrl = data.wsUrl;
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("WSManager init error:", err);
         return; // exit early if fetch fails
       }
@@ -31,14 +32,14 @@ export class WSManager {
 
     this.ws.onopen = () => console.log("WS connected");
     this.ws.onclose = () => console.log("WS disconnected");
-    this.ws.onerror = (err) => console.error("WS error", err);
+    this.ws.onerror = (err: Event) => console.error("WS error", err);
 
-    this.ws.onmessage = (evt) => {
+    this.ws.onmessage = (evt: MessageEvent<string>) => {
       try {
-        const data = JSON.parse(evt.data);
+        const data: WSMessage = JSON.parse(evt.data);
         console.log(data);
         this.listeners.forEach((cb) => cb(data));
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("WS message parse error:", err);
       }
     };

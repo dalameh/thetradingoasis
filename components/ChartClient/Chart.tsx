@@ -55,10 +55,14 @@ const intervals = ["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"] as const;
 type Interval = typeof intervals[number];
 const options = intervals.map(i => ({ value: i, label: i }));
 
+type Time = number | string | BusinessDay;
+interface BusinessDay { year: number; month: number; day: number; }
+
 function toUnixTimestamp(time: Time): number {
   if (typeof time === 'number') return time;
   if (typeof time === 'string') return Math.floor(new Date(time).getTime() / 1000);
-  return Math.floor(new Date(time as any).getTime() / 1000);
+  // time is a BusinessDay
+  return Math.floor(new Date(time.year, time.month - 1, time.day).getTime() / 1000);
 }
 
 export default function Chart({
@@ -448,10 +452,10 @@ export default function Chart({
 
             {/* Loading overlay on top of chart */}
             {isLoading && (
-  <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
-    <ChartLine className="w-25 h-25 text-gray-300 animate-pulse" />
-  </div>
-)}
+              <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
+                <ChartLine className="w-25 h-25 text-gray-300 animate-pulse" />
+              </div>
+            )}
           </div>
         </div>
       </div>

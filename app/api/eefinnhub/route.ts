@@ -34,10 +34,18 @@ export async function GET(request: Request) {
     const data = await res.json();
     
     return NextResponse.json(data);
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Failed to fetch earnings" },
-      { status: 500 }
-    );
+    
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return NextResponse.json(
+        { error: err.message },
+        { status: 500 }
+      );
+    } else {
+      return NextResponse.json(
+        { error: "Failed to fetch earnings" },
+        { status: 500 }
+      );
+    }
   }
 }

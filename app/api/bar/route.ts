@@ -56,8 +56,11 @@ export async function GET(req: NextRequest) {
     });
 
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    // Safely extract message
+    const message = err instanceof Error ? err.message : String(err);
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

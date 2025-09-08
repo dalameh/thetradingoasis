@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseFrontendClient";
+import { AuthError } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
 export default function SigninUp() {
@@ -25,7 +26,7 @@ export default function SigninUp() {
 
     checkSession();
 
-    // Optional: listen for auth state changes
+    // Listen for auth state changes
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
         console.log("User signed in (listener)");
@@ -33,38 +34,61 @@ export default function SigninUp() {
       }
     });
 
-    return () => listener.subscription.unsubscribe();
+    return () => listener?.subscription?.unsubscribe();
   }, [router]);
+
+  // Clear password on flow switch
+  useEffect(() => {
+    setPassword("");
+  }, [flow]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
     try {
       let result;
       if (flow === "signIn") {
-        result = await supabase.auth.signInWithPassword({ email, password });
+        result = await supabase.auth.signInWithPassword({
+          email: trimmedEmail,
+          password: trimmedPassword,
+        });
       } else {
-        result = await supabase.auth.signUp({ email, password });
+        result = await supabase.auth.signUp({
+          email: trimmedEmail,
+          password: trimmedPassword,
+        });
       }
 
       if (result.error) {
         toast.error(result.error.message);
       } else {
-        // toast.success(flow === "signIn" ? "Signed in successfully!" : "Account created!");
         router.replace("/dashboard"); // use replace to avoid back navigation
-        toast.success(flow === "signIn" ? "Signed in successfully 🎉" : "Account created 🎉" , {
-          className: "justify-center text-center"
-        });
+        toast.success(
+          flow === "signIn"
+            ? "Signed in successfully 🎉"
+            : "Account created 🎉",
+          { className: "justify-center text-center" }
+        );
       }
-    } catch (err: any) {
-      toast.error(err.message || "Something went wrong");
+    } catch (err: unknown) {
+      // Narrow the type safely
+      if (err instanceof AuthError) {
+        toast.error(err.message);
+      } else if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
-  // guest idea allows for easy migration if guest wants to became a real user
+  // Guest login
   const handleGuestSignIn = () => {
     if (!sessionStorage.getItem("guestId")) {
       sessionStorage.setItem("guestId", crypto.randomUUID());
@@ -87,8 +111,7 @@ export default function SigninUp() {
             {flow === "signIn" ? "Sign In" : "Sign Up"}
           </h1>
 
-          <form onSubmit={handleSubmit} 
-            className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label className="block text-sm font-medium mb-1">Email</label>
               <input
@@ -116,7 +139,9 @@ export default function SigninUp() {
             <button
               type="submit"
               className={`w-full py-2 px-4 rounded-md text-white ${
-                submitting ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                submitting
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
               }`}
               disabled={submitting}
             >

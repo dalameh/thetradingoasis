@@ -343,10 +343,7 @@ export default function TradeDiaryPage() {
       pnlType: "$",
       setup: "",
       setupRules: [],
-      notes: {
-        type: "doc",
-        content: [],
-      },
+      notes: "",
       outcome: "",
     });
     setTotalCostEdited(false);

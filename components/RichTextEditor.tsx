@@ -10,12 +10,12 @@ interface RichTextEditorProps {
 }
 
 export default function RichTextEditor({ value, onChange }: RichTextEditorProps) {
-  const quillRef = useRef<any>(null);
+  const quillRef = useRef<ReactQuill | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showImageDropdown, setShowImageDropdown] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
-  const handleFileUpload = () => {
+   const handleFileUpload = () => {
     fileInputRef.current?.click();
     setShowImageDropdown(false);
   };
@@ -24,28 +24,32 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
     const file = e.target.files?.[0];
     const quill = quillRef.current?.getEditor();
     const range = quill?.getSelection(true);
+
     if (file && quill && range) {
       const reader = new FileReader();
       reader.onload = () => {
-        quill.insertEmbed(range.index, 'image', reader.result);
+        quill.insertEmbed(range.index, "image", reader.result as string);
         quill.setSelection(range.index + 1);
       };
       reader.readAsDataURL(file);
     }
-    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleImageURL = () => {
-    const url = prompt('Enter image URL:');
+    const url = prompt("Enter image URL:");
     const quill = quillRef.current?.getEditor();
     const range = quill?.getSelection(true);
+
     if (url && quill && range) {
-      quill.insertEmbed(range.index, 'image', url);
+      quill.insertEmbed(range.index, "image", url);
       quill.setSelection(range.index + 1);
     }
+
     setShowImageDropdown(false);
   };
-
+  
   // Open dropdown and position relative to the image button
   const handleImage = () => {
     const button = document.querySelector('.ql-image') as HTMLElement;
