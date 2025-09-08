@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import dynamic from 'next/dynamic';
 import { toast } from "sonner";
 import { useSearchParams } from 'next/navigation';
@@ -73,7 +73,7 @@ interface Setup {
   rules: string[];
 }
 
-export default function TradeDiaryPage() {
+function TradeDiaryContent() {
   const searchParams = useSearchParams();
   const createParam = searchParams.get('add');
   const tickerParam = searchParams.get('ticker');
@@ -1493,6 +1493,13 @@ export default function TradeDiaryPage() {
   );
 }
 
+export default function TradeDiaryPage() {
+  return (
+    <Suspense fallback={<div className="text-center">Loading chart...</div>}>
+      <TradeDiaryContent />
+    </Suspense>
+  );
+}
 
 // lovable implementation
 
