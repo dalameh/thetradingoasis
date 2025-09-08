@@ -32,7 +32,7 @@ export default function Dashboard() {
       const rowSpan = Math.min(Math.max(rowSpanIn, 1), 2);
 
       for (let r = 0; r < rows.length; r++) {
-        const row = rows[r];
+        // const row = rows[r];
         for (let start = 0; start <= 3 - span; start++) {
           let ok = true;
           for (let rr = 0; rr < rowSpan; rr++) {

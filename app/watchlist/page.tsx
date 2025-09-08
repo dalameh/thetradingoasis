@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useWatchlistStore, Ticker } from '@/store/WatchlistStore';
+import { useWatchlistStore } from '@/store/WatchlistStore';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import {isTradingDay, getESTDate } from '@/store/WatchlistStore'

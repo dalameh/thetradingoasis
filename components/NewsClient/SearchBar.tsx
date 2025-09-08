@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import search from "yahoo-finance2/dist/esm/src/modules/search";
 
 export default function SearchBar() {
   const router = useRouter();

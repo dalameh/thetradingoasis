@@ -88,7 +88,7 @@ export default function SentimentIsland({ headlines }: SentimentIslandProps) {
       cancelled = true;
       try {
         controller.abort();
-      } catch (e) {}
+      } catch {}
     };
   }, [payload]);
 

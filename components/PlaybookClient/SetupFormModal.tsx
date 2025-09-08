@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useReducer, useCallback } from "react";
+import React, { useCallback } from "react";
 import { X } from "lucide-react";
 import Select, { SingleValue } from "react-select";
 import { Button } from "@/components/ui/button";

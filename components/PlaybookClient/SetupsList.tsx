@@ -31,7 +31,7 @@ export default function SetupsList({ initialSetups }: SetupsListProps) {
         .order("created_at", { ascending: false });
       if (error) throw error;
       setSetups(data || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to fetch setups");
     } finally {
       setLoading(false);

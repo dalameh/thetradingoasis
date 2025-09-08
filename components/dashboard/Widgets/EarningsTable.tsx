@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 // server side client
 import { supabase } from '@/lib/supabaseFrontendClient';
 

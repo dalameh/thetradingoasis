@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Pagination from "@/components/Pagination"
 interface NewsItem {
   title: string;
