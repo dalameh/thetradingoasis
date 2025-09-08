@@ -16,6 +16,12 @@ import { supabase } from '@/lib/supabaseFrontendClient';
 
 const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), { ssr: false });
 
+type SetupOption = {
+  value: string | null ;
+  label: string;
+  rules: string[]; // or the actual type of your rules
+};
+
 type TradeType = "Stock" | "Options" | "";
 interface OptionType {
   value: TradeType;
@@ -135,7 +141,7 @@ export default function TradeDiaryPage() {
     setSymbol(tickerParam)
     formData.symbol = tickerParam;
     
-  }, [tickerParam]);
+  }, [formData, tickerParam]);
 
   // Maintainable Entry and Exit Rows for Both Stock and Option Types
   const entryFieldMap: Record<
@@ -491,7 +497,7 @@ export default function TradeDiaryPage() {
     }, 500); // wait 500ms after last keystroke
 
     return () => clearTimeout(handler); // cancel previous timeout on symbol change
-  }, [formData.symbol, formData.entryDate, formData.entryTime]);
+  }, [formData.symbol, formData.entryDate, formData.entryTime, entryUnix]);
 
   // ✅ FETCH TYPICAL Exit PRICE BASED ON SYMBOL AND FULL EXIT DATE & TIME DATA
   useEffect(() => {
@@ -519,8 +525,7 @@ export default function TradeDiaryPage() {
     }, 500); // wait 500ms after last keystroke
 
     return () => clearTimeout(handler); // cancel previous timeout on symbol change
-  }, [formData.symbol, formData.exitDate, formData.exitTime]);
-
+  }, [formData.symbol, formData.exitDate, formData.exitTime, exitUnix, formData.type]);
   
   // --- STOCK ENTRY PRICE and STRIKE PRICE AUTO-FILL ---
   useEffect(() => {
@@ -544,7 +549,7 @@ export default function TradeDiaryPage() {
         }));
       }
     }
-  }, [typicalEntryPrice, formData.type, formData.entryDate, formData.entryTime]);
+  }, [typicalEntryPrice, formData.type, formData.entryDate, formData.entryTime, entryPriceEdited, strikePriceEdited]);
 
   // --- STOCK EXIT PRICE AUTO-FILL ---
   useEffect(() => {
@@ -557,7 +562,7 @@ export default function TradeDiaryPage() {
       }));
     }
     
-  }, [formData.stillActive, typicalExitPrice, formData.type, formData.exitDate, formData.exitTime]);
+  }, [formData.stillActive, typicalExitPrice, formData.type, formData.exitDate, formData.exitTime, exitPriceEdited]);
 
   // --- TOTAL COST AUTO-CALCULATION ---
   useEffect(() => {
@@ -599,7 +604,7 @@ export default function TradeDiaryPage() {
       }
 
     }
-  }, [formData.entryPrice, formData.entryPremium, formData.shares, formData.contracts, formData.type]);
+  }, [formData.entryPrice, formData.entryPremium, formData.shares, formData.contracts, formData.type, totalCostEdited]);
 
   // update DTE given entryDate and contractExpDate
   useEffect(() => {
@@ -609,7 +614,7 @@ export default function TradeDiaryPage() {
       ...formData, 
       dte: calculateDTE(formData.entryDate, formData.contractExpDate)
     })
-  }, [formData.entryDate, formData.contractExpDate])
+  }, [formData.entryDate, formData.contractExpDate, calculateDTE, formData])
 
 
   useEffect(() => {
@@ -634,7 +639,7 @@ export default function TradeDiaryPage() {
         contractsSold: (contractsSold > contracts ? contracts : contractsSold)
       })
     }
-  }, [formData.shares, formData.contracts])
+  }, [formData.shares, formData.contracts, formData])
 
   // AUTO PNL CALCULATION
   useEffect(() => {
@@ -675,15 +680,15 @@ export default function TradeDiaryPage() {
       }));
     }
     
-   }, [formData.stillActive, formData.totalCost, formData.exitPrice, formData.sharesSold, formData.exitPremium, formData.contractsSold])
+   }, [formData.stillActive, formData.totalCost, formData.exitPrice, formData.sharesSold, formData.exitPremium, formData.contractsSold, formData])
 
-  // AUTO PNL TYPE CALCULATION
+  // AUTO PNL TYPE CALCULATION change % to $ vice versa
   useEffect(() => {
     if (!formData.pnl) return;
 
     
 
-  }, [formData.pnlType])
+  }, [formData.pnlType, formData.pnl])
 
   // --- AUTO-ADJUST CHART INTERVAL ---
   const getChartInterval = () => {
@@ -1309,7 +1314,7 @@ export default function TradeDiaryPage() {
                         .find(opt => opt.value === selectedSetupId)
                     : { value: null, label: 'Select a Setup', rules: [] } // default option
                 }
-                onChange={(opt: any) => {
+                onChange={(opt: SetupOption | null) => {
                   if (!opt || opt.value === null) {
                     // reset all
                     setSelectedSetupId(null);
@@ -1330,7 +1335,7 @@ export default function TradeDiaryPage() {
                   }
                 }}
                 options={[
-                  { value: undefined, label: 'Select a Setup', rules: [] }, // default reset option
+                  { value: null, label: 'Select a Setup', rules: [] }, // default reset option
                   ...setups.map(s => ({ value: s.id, label: s.name, rules: s.rules }))
                 ]}
                 placeholder="Select a setup"

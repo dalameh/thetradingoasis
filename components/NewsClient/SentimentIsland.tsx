@@ -65,16 +65,25 @@ export default function SentimentIsland({ headlines }: SentimentIslandProps) {
           setSentiment(percentages);
           setLoadingSentiment(false);
         }
-      } catch (err: any) {
-        if (err?.name === "AbortError") return;
-        console.error("Sentiment fetch error:", err);
-        if (!cancelled) {
-          setError(err?.message ?? "Sentiment request failed");
-          setLoadingSentiment(false);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          if (err.name === "AbortError") return;
+          console.error("Sentiment fetch error:", err);
+          if (!cancelled) {
+            setError(err.message ?? "Sentiment request failed");
+            setLoadingSentiment(false);
+          }
+        } else {
+          // handle non-Error objects just in case
+          console.error("Sentiment fetch error:", err);
+          if (!cancelled) {
+            setError("Sentiment request failed");
+            setLoadingSentiment(false);
+          }
         }
       }
     })();
-
+    
     return () => {
       cancelled = true;
       try {

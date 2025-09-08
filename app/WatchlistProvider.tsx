@@ -23,7 +23,7 @@ export default function WatchlistProvider({ children }: { children: React.ReactN
 
   useEffect(() => {
     fetchUser();
-  }, [setUserId]);
+  }, [fetchUser, setUserId]);
 
   // 2️⃣ Initialize WS when userId exists
   useEffect(() => {

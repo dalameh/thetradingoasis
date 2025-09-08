@@ -10,7 +10,7 @@ import {
   IChartApi,
   ISeriesApi,
   Time,
-   SeriesMarker,
+  SeriesMarker,
   createSeriesMarkers,
 } from 'lightweight-charts';
 
@@ -55,14 +55,22 @@ const intervals = ["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"] as const;
 type Interval = typeof intervals[number];
 const options = intervals.map(i => ({ value: i, label: i }));
 
-type Time = number | string | BusinessDay;
-interface BusinessDay { year: number; month: number; day: number; }
-
 function toUnixTimestamp(time: Time): number {
   if (typeof time === 'number') return time;
-  if (typeof time === 'string') return Math.floor(new Date(time).getTime() / 1000);
-  // time is a BusinessDay
-  return Math.floor(new Date(time.year, time.month - 1, time.day).getTime() / 1000);
+
+  if (typeof time === 'string') {
+    const timestamp = Date.parse(time);
+    return Math.floor(timestamp / 1000);
+  }
+
+  // BusinessDay (only year, month, day)
+  if ('year' in time && 'month' in time && 'day' in time) {
+    const d = new Date(time.year, time.month - 1, time.day, 0, 0, 0);
+    return Math.floor(d.getTime() / 1000);
+  }
+
+  console.warn('Invalid time format:', time);
+  return 0;
 }
 
 export default function Chart({
@@ -149,7 +157,7 @@ export default function Chart({
       chartRef.current = null;
       candleSeriesRef.current = null;
     };
-  }, [height, width]);
+  }, [height, width, selectedInterval]);
 
   // --- FETCH DATA AND UPDATE CHART ---
   useEffect(() => {
@@ -300,7 +308,7 @@ export default function Chart({
     fetchData();
 
     return () => { isMounted = false; };
-  }, [ticker, start, end, selectedInterval, entryUnix, exitUnix]);
+  }, [ticker, start, end, selectedInterval, entryUnix, exitUnix, page]);
 
   
   useEffect(() => {
@@ -394,7 +402,7 @@ export default function Chart({
 
     // --- APPLY NEW MARKERS ---
     createSeriesMarkers(candleSeriesRef.current, markers);
-  }, [entryUnix, exitUnix, selectedInterval]);
+  }, [entryUnix, exitUnix, selectedInterval, candleData]);
 
   return (
     <div className="flex justify-center">

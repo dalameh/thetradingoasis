@@ -15,7 +15,7 @@ export default function SearchBar() {
     if (tickerParam) {
       setInput(tickerParam.toUpperCase());
     }
-  }, []); // run once on mount
+  }, [tickerParam]); // run once on mount
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,13 +39,6 @@ export default function SearchBar() {
           onChange={(e) => setInput(e.target.value)} // preserve typed input
           className="bg-white text-black shadow-md flex-grow min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        {/* <button
-            type = "submit"
-            className="flex items-center gap-2 p-2 rounded-lg border border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-          >
-            <span className = "text-sm">{"Search"}</span>
-          </button> */}
-
         <div className="flex items-center justify-end">
           <button
             type="submit"

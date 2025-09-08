@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search } from "lucide-react";
+import search from "yahoo-finance2/dist/esm/src/modules/search";
 
 export default function SearchBar() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function SearchBar() {
     if (searchParam) {
       setInput(searchParam.toUpperCase());
     }
-  }, []); // run once on mount
+  }, [searchParam]); // run once on mount
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
