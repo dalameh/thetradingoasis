@@ -1,3 +1,18 @@
+'use client';
+
+import React from 'react';
+
+export default function NewsContent() {
+  return (
+    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <div className="bg-white rounded-xl shadow-md p-6 w-full max-w-4xl">
+        <h1 className="text-2xl font-bold mb-4">Blank Page</h1>
+        <p className="text-gray-600">This is a blank page skeleton. Start building your content here.</p>
+      </div>
+    </main>
+  );
+}
+
 // "use client";
 
 // import React, { ReactNode, ErrorInfo, Suspense, useEffect, useRef, useState } from "react";
