@@ -968,7 +968,7 @@ export default function TradeDiaryPage() {
                           } else {
                             setFormData((prev) => ({
                               ...prev,
-                              [quantityEntryFieldMap[formData.type].key]: Math.round(val),
+                              [quantityEntryFieldMap[formData.type].key]: val != undefined ? Math.round(val) : 0,
                             }));
                           }
                         }}
