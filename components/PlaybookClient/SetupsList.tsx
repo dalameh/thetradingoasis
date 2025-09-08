@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import SetupItem from "./SetupItem";
 import SetupForm from "./SetupFormModal";
-import { Setup } from "Setup"
+import { Setup } from "@/types/Setup";
 import { supabase } from "@/lib/supabaseFrontendClient";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
