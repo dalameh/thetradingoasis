@@ -2,7 +2,7 @@
 
 import React, { memo } from "react";
 import SetupMenu from "./SetupMenu";
-import { Setup } from "@/types";
+import { Setup } from "@/types/Setup.js";
 
 type SetupItemProps = {
   setup: Setup;
