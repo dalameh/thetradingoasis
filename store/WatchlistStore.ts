@@ -29,6 +29,19 @@ type WatchlistState = {
   removeTicker: (ticker: string) => Promise<void>;
 };
 
+// Define the types
+type FinnhubUpdate = {
+  p: number;       // price
+  s: string;       // symbol
+  t: number;       // timestamp
+  v: number;       // volume
+};
+
+type FinnhubMessage = {
+  data: FinnhubUpdate[];
+  type: string;
+};
+
 const symbolMap: Record<string, string> = {
   "^GSPC": "OANDA:SPX500_USD",
   "^DJI": "OANDA:US30_USD",
@@ -180,13 +193,16 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
     const manager = new WSManager();
     await manager.init();
 
-    manager.addListener((data) => {
-      if (!data.data) return;
-
+    manager.addListener((data: unknown) => {
+      const typedData = data as FinnhubMessage;
+      if (!typedData.data) return;
+      
       set({
         watchlist: get().watchlist.map((t) => {
           const finnhubSymbol = symbolMap[t.ticker] || t.ticker;
-          const update = data.data.find((u: any) => u.s === finnhubSymbol);
+          const typedData = data as { data: FinnhubUpdate[] }; // assert type
+
+          const update = typedData.data.find((u: any) => u.s === finnhubSymbol);
           if (update) {
             const newPrice = update.p;
             const changePct = t.oldPrice > 0 ? ((newPrice - t.oldPrice) / t.oldPrice) * 100 : 0;

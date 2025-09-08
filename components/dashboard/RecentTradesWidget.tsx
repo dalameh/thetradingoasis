@@ -26,7 +26,6 @@ export function RecentTradesWidget() {
               {trade.pnl}
             </div>
             <Badge 
-              variant={trade.status === 'open' ? 'default' : 'secondary'}
               className="text-xs"
             >
               {trade.status}

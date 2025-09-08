@@ -3,7 +3,6 @@
 
 import React, { useMemo, useState } from "react";
 import { AVAILABLE_WIDGETS, AvailableWidget } from "@/components/dashboard/availableWidget";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, X, Settings } from "lucide-react";
 
@@ -50,9 +49,10 @@ export function WidgetManager({
             <Settings className="mr-2 h-5 w-5 text-gray-700" />
             Add / Remove Widgets
           </CardTitle>
-          <Button variant="ghost" size="icon" onClick={onToggleManager} className="text-gray-600 hover:text-gray-900">
+          <button 
+            onClick={onToggleManager} className="text-gray-600 hover:text-gray-900">
             <X className="h-5 w-5" />
-          </Button>
+          </button>
         </CardHeader>
 
         <CardContent className="px-6 py-6">

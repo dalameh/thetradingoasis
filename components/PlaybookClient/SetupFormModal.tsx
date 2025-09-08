@@ -3,7 +3,6 @@
 import React, { useCallback } from "react";
 import { X } from "lucide-react";
 import Select, { SingleValue } from "react-select";
-import { Button } from "@/components/ui/button";
 
 type RuleAction =
   | { type: 'update'; index: number; value: string }
@@ -107,14 +106,12 @@ export default function SetupForm({ initialData, onCancel, onSave }: SetupFormPr
                 {initialData ? "Edit Setup" : "Build Your New Setup"}
               </h2>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={onCancel}
               className="w-10 flex items-center justify-center text-gray-600 hover:text-gray-900"
             >
               <X className="h-5 w-5" />
-            </Button>
+            </button>
           </div>
 
           {/* Name */}
