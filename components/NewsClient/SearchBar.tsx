@@ -1,9 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
-export default function SearchBar() {
+function SearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchParam = searchParams.get("search");
@@ -56,5 +56,13 @@ export default function SearchBar() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function SearchBar() {
+  return (
+    <Suspense fallback={<div className="text-center">Loading...</div>}>
+      <SearchContent />
+    </Suspense>
   );
 }

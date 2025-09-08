@@ -1,12 +1,12 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { getTicker } from "@/components/ChartClient/Chart";
 
 const Chart = dynamic(() => import("@/components/ChartClient/Chart"), { ssr: false });
 
-export default function ChartWrapper() {
+function ChartContent() {
   const searchParams = useSearchParams();
   const tickerParam = searchParams.get("ticker");
 
@@ -38,5 +38,13 @@ export default function ChartWrapper() {
         page="chart"
       />
     </>
+  );
+}
+
+export default function ChartWrapper() {
+  return (
+    <Suspense fallback={<div className="text-center">Loading chart...</div>}>
+      <ChartContent />
+    </Suspense>
   );
 }
