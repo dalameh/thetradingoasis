@@ -83,8 +83,7 @@ export default function Sidebar({
   function handeIconButton() {
     setCollapsed(!collapsed)
   }
-  const hideNavigation = pathname === "/" || pathname === "/signin";
-
+  
 return (
   <aside
     className={`
@@ -150,7 +149,7 @@ return (
     </div>
 
     {/* Navigation menu */}
-    {authenticated && !hideNavigation && (
+    {authenticated && (
       <Navigation collapsed={collapsed} setCollapsed={setCollapsed} />
     )}
 
