@@ -59,9 +59,8 @@ export function getESTDate(date: Date = new Date()): Date {
   return new Date(estString);
 }
 
-export function formatDateEST(date: Date): string {
-  // Return YYYY-MM-DD string in EST
-  return getESTDate(date).toISOString().split("T")[0];
+export function formatDateEST(date: Date = new Date()): string {
+  return date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 }
 
 function getHolidaySet(year: number): Set<string> {
