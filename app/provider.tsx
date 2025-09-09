@@ -1,65 +1,63 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(true);
+  const pathname = usePathname();
 
-  // Detect desktop vs mobile
-  useEffect(() => {
-    const updateSize = () => setIsDesktop(window.innerWidth >= 768);
-    updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
-  }, []);
+  // Pages without sidebar
+  const hideSidebarPages = ["/", "/signin"];
+  const showSidebar = !hideSidebarPages.includes(pathname);
 
   return (
     <>
-      {/* Desktop sidebar */}
-      {isDesktop && <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
+      {/* Desktop sidebar (md+) */}
+      {showSidebar && (
+        <div className="hidden md:block">
+          <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+        </div>
+      )}
 
       {/* Mobile hamburger button */}
-      {!isDesktop && (
-        <button
-          onClick={() => setMobileMenuOpen(true)}
-          className="fixed top-4 left-4 z-50 p-2 rounded-md bg-white shadow-lg"
-          aria-label="Open menu"
-        >
-          <div className="space-y-1">
-            <span className="block w-6 h-0.5 bg-gray-800"></span>
-            <span className="block w-6 h-0.5 bg-gray-800"></span>
-            <span className="block w-6 h-0.5 bg-gray-800"></span>
-          </div>
-        </button>
+      {showSidebar && (
+        <div className="fixed top-4 left-4 z-50 md:hidden">
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="p-2 rounded-md shadow-lg bg-gray-200 hover:bg-gray-300"
+            aria-label="Open menu"
+          >
+            <div className="space-y-1">
+              <span className="block w-6 h-0.5 bg-gray-800"></span>
+              <span className="block w-6 h-0.5 bg-gray-800"></span>
+              <span className="block w-6 h-0.5 bg-gray-800"></span>
+            </div>
+          </button>
+        </div>
       )}
 
       {/* Mobile sidebar drawer */}
-      {mobileMenuOpen && !isDesktop &&(
+      {showSidebar && mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50"
-          onClick={() => setMobileMenuOpen(false)} // click outside closes
+          className="fixed inset-0 z-50 bg-black/50 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
         >
           <div
             className="absolute left-0 top-0 h-full w-48 bg-white shadow-lg"
-            onClick={(e) => {
-              e.stopPropagation(); // prevent overlay click
-              setMobileMenuOpen(false); // collapse after any internal click
-            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <Sidebar collapsed={false} setCollapsed={() => {}}  />
+            <Sidebar collapsed={false} setCollapsed={() => {}} />
           </div>
         </div>
       )}
 
       {/* Main content */}
       <main
-        className="bg-gray-100 min-h-screen transition-all duration-300"
-        style={{
-          paddingLeft: isDesktop ? (collapsed ? "5rem" : "12rem") : "0",
-        }}
+        className={`bg-gray-100 min-h-screen transition-all duration-300
+                    ${showSidebar ? (collapsed ? "md:pl-[5rem]" : "md:pl-[12rem]") : ""}`}
       >
         {children}
       </main>
