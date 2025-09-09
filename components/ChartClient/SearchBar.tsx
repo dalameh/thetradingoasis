@@ -1,21 +1,21 @@
 "use client";
-import { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
 function SearchContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const tickerParam = searchParams.get("ticker");
+  // const searchParams = useSearchParams();
+  // const tickerParam = searchParams.get("ticker");
 
   const [input, setInput] = useState("");
 
   // Populate input on initial load only
-  useEffect(() => {
-    if (tickerParam) {
-      setInput(tickerParam.toUpperCase());
-    }
-  }, [tickerParam]); // run once on mount
+  // useEffect(() => {
+  //   if (tickerParam) {
+  //     setInput(tickerParam.toUpperCase());
+  //   }
+  // }, [tickerParam]); // run once on mount
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +37,15 @@ function SearchContent() {
           placeholder="Enter ticker or index (eg. AAPL)"
           value={input}
           onChange={(e) => setInput(e.target.value)} // preserve typed input
-          className="bg-white text-black shadow-md flex-grow min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+          className="
+              bg-white text-black
+              text-sm sm:text-md
+              placeholder:text-sm sm:placeholder:text-md
+              shadow-md flex-grow min-w-0 px-4 py-2
+              border border-gray-300 rounded-lg
+              focus:outline-none focus:ring-2 focus:ring-blue-500
+            "
+          />
         <div className="flex items-center justify-end">
           <button
             type="submit"
