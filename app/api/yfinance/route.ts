@@ -49,7 +49,7 @@ function isChartResult(obj: unknown): obj is ChartResult {
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const ticker = url.searchParams.get("ticker") || "SPY";
-  let interval = url.searchParams.get("interval") || "1d";
+  const interval = url.searchParams.get("interval") || "1d";
   const start = url.searchParams.get("start") || "2021-01-01";
   const end = url.searchParams.get("end");
 
