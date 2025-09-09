@@ -199,7 +199,7 @@ export default function Dashboard() {
     return (
       <main>
         <PageHeader title="Your Dashboard"/>
-        <div className="min-h-screen bg-gray-100 p-4">
+        <div className="min-h-screen bg-white p-4">
           <div className="grid grid-cols-4 gap-4 mb-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-25 rounded-lg bg-gray-200 animate-pulse"></div>
@@ -218,7 +218,7 @@ export default function Dashboard() {
   return (
     <main>
       <PageHeader title="Your Dashboard"/>
-      <div className="min-h-screen bg-gray-100 p-4">
+      <div className="min-h-screen bg-gray-50 p-4">
         {/* Header */}
         <div className="flex items-center justify-end pb-3">
           <button
@@ -233,7 +233,7 @@ export default function Dashboard() {
 
         {/* STATS ROW */}
         <section className="mb-6">
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {statsWidgets.map((id, idx) => (
               <div key={id} draggable={isEditing} onDragStart={e => onDragStart(e, "stats", idx)} onDragOver={onDragOver} onDrop={e => onDrop(e, "stats", idx)}
                 className={`relative p-3 ${isEditing ? "transform hover:scale-101" : ""} rounded-lg border bg-white shadow-sm ${isEditing ? "cursor-move" : "cursor-default"} transition-all h-25`}>
@@ -253,7 +253,7 @@ export default function Dashboard() {
 
         {/* MAIN ROW */}
         <section>
-          <div className="grid grid-cols-3 gap-4 auto-rows-[240px]"> {/* auto-rows sets base row height */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 auto-rows-[240px]"> {/* auto-rows sets base row height */}
             {packedMainRows.length === 0 ? (
               // placeholders
               isEditing && (

@@ -82,7 +82,7 @@ function SortableItem({ id, href, emoji, label, bgColor, hoverColor, disabled }:
   );
 }
 
-export function QuickActionsWidget({ editing = false }: { editing?: boolean }) {
+export default function QuickActionsWidget({ editing = false }: { editing?: boolean }) {
   const [widgets, setWidgets] = useState(initialWidgets);
 
   const sensors = useSensors(

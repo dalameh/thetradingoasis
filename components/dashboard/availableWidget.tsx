@@ -1,5 +1,6 @@
 import EarningsTable from "@/components/dashboard/Widgets/EarningsTable"
-import { QuickActionsWidget } from "@/components/dashboard/Widgets/QuickActions";
+import QuickActionsWidget from "@/components/dashboard/Widgets/QuickActions";
+import WatchlistTable from "@/components/dashboard/Widgets/WatchlistTable";
 
 export interface AvailableWidget {
   id: string;
@@ -25,7 +26,7 @@ export const AVAILABLE_WIDGETS: AvailableWidget[] = [
   { id: "performance-chart", title: "Performance Chart", description: "P/L over time", category: "Trading", span: 2, rowSpan: 1 },
   { id: "equity-curve", title: "Equity Curve", description: "Cumulative P&L", category: "Trading", span: 2, rowSpan: 2 },
   { id: "recent-trades", title: "Recent Trades", description: "Latest executions & positions", category: "Trading", span: 1, rowSpan: 1 },
-  { id: "watchlist", title: "Watchlist", description: "Your tracked symbols", category: "Trading", span: 1, rowSpan: 2 },
+  { id: "watchlist", title: "Watchlist", description: "Your tracked symbols", category: "Trading", span: 1, rowSpan: 2, component: () => <WatchlistTable rpp = {5}/>},
   { id: "open-orders", title: "Open Orders", description: "Active orders table", category: "Trading", span: 1, rowSpan: 1 },
 
   // Market

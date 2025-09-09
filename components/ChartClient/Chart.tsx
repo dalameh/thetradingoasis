@@ -177,6 +177,7 @@ export default function Chart({
         if (end) url.searchParams.append('end', end);
 
         const res = await fetch(url.toString());
+
         if (!res.ok) {
           if (!isMounted) return;
           setErrorMessage(`ticker "${ticker}" not found`);

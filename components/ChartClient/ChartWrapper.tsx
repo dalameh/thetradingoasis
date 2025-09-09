@@ -32,7 +32,6 @@ function ChartContent() {
       </header>
       <Chart
         ticker={ticker}
-        start="2021-01-01"
         width={900}
         height={275}
         page="chart"

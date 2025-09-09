@@ -413,8 +413,9 @@ function TradeDiaryContent() {
     return !holidayCache[year].has(key);
   }
   
-  function getPreviousTradingDay(date: Date = new Date()): string {
+  function getNearestTradingDay(date: Date = new Date()): string {
     const d = new Date(date);
+    if (isTradingDay(d)) return formatDateLocal(d);
     d.setDate(d.getDate() - 1);
     while (!isTradingDay(d)) d.setDate(d.getDate() - 1);
     return formatDateLocal(d); // use local YYYY-MM-DD
@@ -422,7 +423,7 @@ function TradeDiaryContent() {
   
   function clampEntryDate(date: Date | null | undefined): Date | null {
     if (!date) return null;
-    return new Date(getPreviousTradingDay(date) + "T00:00:00"); 
+    return new Date(getNearestTradingDay(date) + "T00:00:00"); 
     // ensures midnight local
   }
 
@@ -1340,7 +1341,7 @@ function TradeDiaryContent() {
                 ]}
                 placeholder="Select a setup"
                 noOptionsMessage={() => "No setups"}
-                className="w-full text-gray-900 z-50"
+                className="w-full text-gray-900 z-35"
                 classNames={{
                   control: () =>
                     'border border-gray-300 rounded-md shadow-sm hover:border-indigo-500 focus-within:border-indigo-500 transition-colors',
