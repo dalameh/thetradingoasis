@@ -7,20 +7,22 @@ type Listener = (msg: WSMessage) => void;
 export class WSManager {
   private ws: WebSocket | null = null;
   private listeners: Listener[] = [];
+  private closedByUser = false;   // 👈 track manual closes
 
   constructor(private wsUrl?: string) {}
 
-  // Fetch WS URL from API if not provided
   async init() {
+    if (this.closedByUser) return; // 👈 do nothing if closed by user
+
     if (!this.wsUrl) {
       try {
         const res = await fetch("/api/wsfinnhub");
         if (!res.ok) throw new Error("Failed to fetch WS URL");
         const data: { wsUrl: string } = await res.json();
         this.wsUrl = data.wsUrl;
-      } catch (err: unknown) {
+      } catch (err) {
         console.error("WSManager init error:", err);
-        return; // exit early if fetch fails
+        return;
       }
     }
 
@@ -31,15 +33,17 @@ export class WSManager {
     this.ws = new WebSocket(this.wsUrl);
 
     this.ws.onopen = () => console.log("WS connected");
-    this.ws.onclose = () => console.log("WS disconnected");
-    this.ws.onerror = (err: Event) => console.error("WS error", err);
+    this.ws.onclose = () => {
+      console.log("WS disconnected");
+      this.ws = null;
+    };
+    this.ws.onerror = (err) => console.error("WS error", err);
 
-    this.ws.onmessage = (evt: MessageEvent<string>) => {
+    this.ws.onmessage = (evt) => {
       try {
         const data: WSMessage = JSON.parse(evt.data);
-        console.log(data);
         this.listeners.forEach((cb) => cb(data));
-      } catch (err: unknown) {
+      } catch (err) {
         console.error("WS message parse error:", err);
       }
     };
@@ -66,6 +70,7 @@ export class WSManager {
   }
 
   close() {
+    this.closedByUser = true;   // 👈 mark as closed intentionally
     this.ws?.close();
     this.ws = null;
     this.listeners = [];
