@@ -43,11 +43,14 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       {showSidebar && mobileMenuOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/50 md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
+          onClick={() => setMobileMenuOpen(false)} // clicking overlay closes menu
         >
           <div
             className="absolute left-0 top-0 h-full w-48 bg-white shadow-lg"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation(); // prevent closing when clicking inner container
+              setMobileMenuOpen(false); // **close menu on any click inside**
+            }}
           >
             <Sidebar collapsed={false} setCollapsed={() => {}} />
           </div>

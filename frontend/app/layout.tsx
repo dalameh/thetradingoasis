@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-black m-0 p-0 overflow-y-scroll overscroll-contain`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 text-black m-0 p-0 overflow-y-scroll overscroll-contain`}
       >
         <AppWrapper>
           <WatchlistProvider>{children}</WatchlistProvider>
