@@ -3,6 +3,7 @@
 import React, { useCallback } from "react";
 import { X } from "lucide-react";
 import Select, { SingleValue } from "react-select";
+import { toast } from 'sonner';
 
 type RuleAction =
   | { type: 'update'; index: number; value: string }
@@ -79,10 +80,6 @@ export default function SetupForm({ initialData, onCancel, onSave }: SetupFormPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const validRules = rules.filter(r => r.trim() !== '');
-    if (!state.name || !state.description || !state.type || !state.market || validRules.length === 0) {
-      alert('Please fill all required fields');
-      return;
-    }
     onSave({ ...state, rules: validRules });
   };
 
@@ -127,6 +124,7 @@ export default function SetupForm({ initialData, onCancel, onSave }: SetupFormPr
               }
               placeholder="e.g., Bull Flag Breakout"
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+              required
             />
           </div>
 
@@ -141,6 +139,7 @@ export default function SetupForm({ initialData, onCancel, onSave }: SetupFormPr
                 onChange={(opt: SingleValue<SelectOption>) =>
                   setState((prev) => ({ ...prev, type: opt?.value || '' }))
                 }
+                required
                 options={typeOptions}
                 placeholder="Select type"
                 styles={{
@@ -157,6 +156,7 @@ export default function SetupForm({ initialData, onCancel, onSave }: SetupFormPr
                 onChange={(opt: SingleValue<SelectOption>) =>
                   setState((prev) => ({ ...prev, market: opt?.value || '' }))
                 }
+                required
                 options={biasOptions}
                 placeholder="Select bias"
                 styles={{
@@ -179,6 +179,7 @@ export default function SetupForm({ initialData, onCancel, onSave }: SetupFormPr
               placeholder="Brief description of setup ..."
               rows={2}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+              required
             />
           </div>
 
@@ -259,6 +260,7 @@ const RuleInput = React.memo(function RuleInputComponent({
         onChange={(e) => onChange(index, e.target.value)}
         placeholder={`Rule ${index + 1}`}
         className="flex-1 px-2 py-2 text-gray-900 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+        required
       />
       {removable && (
         <button
@@ -266,7 +268,7 @@ const RuleInput = React.memo(function RuleInputComponent({
           onClick={() => onRemove(index)}
           className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-sm"
         >
-          ✖
+          <X className="h-5 w-5" />
         </button>
       )}
     </div>

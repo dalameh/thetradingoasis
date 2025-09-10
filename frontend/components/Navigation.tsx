@@ -2,7 +2,8 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { supabase } from "@/lib/supabaseFrontendClient"; // adjust path to your supabase client
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseFrontendClient";
 
 const AccountIcon = () => (
   <svg
@@ -29,13 +30,11 @@ const pages = [
   { id: "scans", label: "Scans", icon: "🔍", href: "/scans" },
   { id: "diary", label: "Trade Diary", icon: "📝", href: "/diary" },
   { id: "playbook", label: "Playbook", icon: "💼", href: "/playbook" },
-  // currently the sign out but making it account icon for now
   { id: "signout", label: "Sign Out", icon: <AccountIcon />, href: "/" },
 ];
 
 export default function Navigation({
   collapsed,
-  // setCollapsed,
 }: {
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
@@ -43,12 +42,25 @@ export default function Navigation({
   const router = useRouter();
   const pathname = usePathname();
 
+  const [isGuest, setIsGuest] = useState(false);
+
+  // Detect guest mode once client is mounted
+  useEffect(() => {
+    setIsGuest(sessionStorage.getItem("authenticated") === "guest");
+  }, []);
+
   async function handleSignOut() {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-      router.push("/"); // Redirect after sign out
+    if (isGuest) {
+      // Guest: don't clear sessionStorage, just return to landing
+      router.push("/");
     } else {
-      alert("Failed to sign out: " + error.message);
+      // Supabase user
+      const { error } = await supabase.auth.signOut();
+      if (!error) {
+        router.push("/");
+      } else {
+        alert("Failed to sign out: " + error.message);
+      }
     }
   }
 
@@ -69,10 +81,8 @@ export default function Navigation({
                 ${
                   isActive
                     ? "bg-blue-200 text-blue-800"
-                    // : "text-gray-600 hover:text-primary active:bg-blue-200"
-                    : "text-cyan-50 hover:text-primary active:bg-blue-200"
-                }
-                ${id === "signout" ? "border shadow-md" : ""}`}
+                    : "text-cyan-50 hover:text-blue-200 active:bg-blue-200"
+                }`}
             >
               <span>{icon}</span>
               {!collapsed && <span>{label}</span>}
@@ -85,27 +95,19 @@ export default function Navigation({
       {/* Bottom nav item: signout/account */}
       {pages
         .filter((item) => item.id === "signout")
-        .map(({ id, label, icon }) => {
-          const isActive = false; // signout typically not "active"
-
-          return (
-            <button
-              key={id}
-              onClick={handleSignOut} // <-- call signOut handler here
-              className={`flex items-center ${
-                collapsed ? "justify-center" : "space-x-2"
-              } px-4 py-2 rounded-md text-sm font-medium cursor-pointer border shadow-mds
-                ${
-                  isActive
-                    ? "bg-blue-200 text-blue-800"
-                    : "text-gray-600 hover:text-primary active:bg-blue-200"
-                }`}
-            >
-              <span>{icon}</span>
-              {!collapsed && <span>{label}</span>}
-            </button>
-          );
-        })}
+        .map(({ id, label, icon }) => (
+          <button
+            key={id}
+            onClick={handleSignOut}
+            className={`flex items-center ${
+              collapsed ? "justify-center" : "space-x-2"
+            } px-4 py-2 rounded-md text-sm font-medium cursor-pointer border shadow-mds
+              text-gray-600 hover:text-primary active:bg-blue-200`}
+          >
+            <span className = "text-white">{icon}</span>
+            {!collapsed && <span className = "text-gray-200">{isGuest ? "Exit Guest Mode" : label}</span>}
+          </button>
+        ))}
     </nav>
   );
 }

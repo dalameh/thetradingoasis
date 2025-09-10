@@ -11,13 +11,19 @@ export default function SigninUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [hasGuestSession, setHasGuestSession] = useState(false);
 
   const router = useRouter();
 
+  // Check for real user session and detect existing guest session
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) router.replace("/dashboard");
+
+      if (sessionStorage.getItem("authenticated") === "guest") {
+        setHasGuestSession(true);
+      }
     };
     checkSession();
 
@@ -28,10 +34,13 @@ export default function SigninUp() {
     return () => listener?.subscription?.unsubscribe();
   }, [router]);
 
+  // Reset password when switching flows
   useEffect(() => setPassword(""), [flow]);
 
+  // Real user sign-in / sign-up
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
 
     const trimmedEmail = email.trim();
@@ -51,8 +60,15 @@ export default function SigninUp() {
         });
       }
 
-      if (result.error) toast.error(result.error.message);
-      else {
+      if (result.error) {
+        toast.error(result.error.message);
+      } else {
+        // Successful real login/signup → clear guest session
+        if (sessionStorage.getItem("authenticated") === "guest") {
+          sessionStorage.removeItem("guestId");
+          sessionStorage.removeItem("authenticated");
+        }
+
         router.replace("/dashboard");
         toast.success(
           flow === "signIn"
@@ -69,16 +85,23 @@ export default function SigninUp() {
     }
   };
 
+  // Guest sign-in
   const handleGuestSignIn = () => {
-    if (!sessionStorage.getItem("guestId")) sessionStorage.setItem("guestId", crypto.randomUUID());
-    sessionStorage.setItem("authenticated", "true");
-    router.push("/dashboard");
+    if (submitting) return;
+    setSubmitting(true);
+
+    if (!sessionStorage.getItem("guestId")) {
+      sessionStorage.setItem("guestId", crypto.randomUUID());
+    }
+    sessionStorage.setItem("authenticated", "guest");
+
+    router.replace("/dashboard");
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-8 
-      bg-gradient-to-br from-[#40c0f3] via-[#FFC857] to-[#ff6c44]">
-      
+    <main className="w-full min-h-screen h-screen flex items-center justify-center 
+      px-4 py-8 bg-gradient-to-br from-[#40c0f3] via-[#FFC857] to-[#ff6c44]">
+
       <div className="w-full max-w-md p-6 sm:p-8 bg-white bg-opacity-90 text-black rounded-xl shadow-lg overflow-hidden transform scale-90">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold text-blue-600">The Trading Oasis</h1>
@@ -145,11 +168,13 @@ export default function SigninUp() {
           <hr className="grow border-gray-200" />
         </div>
 
+        {/* Single guest button: sign in or continue */}
         <button
+          disabled={submitting}
           className="w-full py-2 px-4 rounded-md text-white font-medium bg-gradient-to-r from-[#0288d1] to-[#4fc3f7] hover:scale-105 shadow-md"
           onClick={handleGuestSignIn}
         >
-          Sign in as a guest
+          {hasGuestSession ? "Continue as Guest" : "Sign in as Guest"}
         </button>
       </div>
     </main>

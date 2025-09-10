@@ -2,32 +2,65 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+
+function StarField() {
+  const [stars, setStars] = useState<{top: string, left: string, width: number, height: number, opacity: number}[]>([]);
+  useEffect(() => {
+      // lock scrolling
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        // restore when leaving this page
+        document.body.style.overflow = prev;
+      };
+    }, []);
+
+  useEffect(() => {
+    const generatedStars = Array.from({ length: 200 }).map(() => ({
+      width: Math.random() * 2 + 0.5,
+      height: Math.random() * 2 + 0.5,
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      opacity: Math.random() * 0.5 + 0.5,
+    }));
+    setStars(generatedStars);
+  }, []);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      {stars.map((star, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full bg-white"
+          style={{
+            width: star.width,
+            height: star.height,
+            top: star.top,
+            left: star.left,
+            opacity: star.opacity,
+            filter: "blur(0.5px)",
+          }}
+          animate={{ opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: Math.random() * 3 + 2, repeat: Infinity }}
+        />
+      ))}
+    </div>
+  );
+}
+
 
 export default function OasisLandingPage() {
   const router = useRouter();
   const handleSignIn = () => router.push("/signin");
 
   return (
-    <main className="relative w-full min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#0a1b2d] to-[#10293f] text-white px-6">
+    <main className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden  bg-gradient-to-b from-[#0a1b2d] to-[#10293f] text-white px-6">
       
       {/* Background stars */}
       <div className="absolute inset-0 pointer-events-none">
-        {[...Array(200)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-white"
-            style={{
-              width: Math.random() * 2 + 0.5,
-              height: Math.random() * 2 + 0.5,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              opacity: Math.random() * 0.5 + 0.5,
-              filter: "blur(0.5px)",
-            }}
-            animate={{ opacity: [0.5, 0.8, 0.5] }}
-            transition={{ duration: Math.random() * 3 + 2, repeat: Infinity }}
-          />
-        ))}
+       <StarField />
       </div>
 
       {/* Shooting star (bottom-left → top-right, smooth) */}
@@ -71,7 +104,7 @@ export default function OasisLandingPage() {
 
       {/* Title */}
       <motion.h1
-        className="text-5xl md:text-6xl font-extrabold tracking-wide leading-relaxed bg-clip-text text-transparent bg-gradient-to-r from-[#FFC857] via-[#FF6F3C] to-[#FF4E1C]"
+        className="text-5xl md:text-6xl font-extrabold text-center tracking-wide leading-relaxed bg-clip-text text-transparent bg-gradient-to-r from-[#FFC857] via-[#FF6F3C] to-[#FF4E1C]"
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 1 }}
