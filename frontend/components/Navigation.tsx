@@ -41,7 +41,6 @@ export default function Navigation({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-
   const [isGuest, setIsGuest] = useState(false);
 
   // Detect guest mode once client is mounted
@@ -51,10 +50,10 @@ export default function Navigation({
 
   async function handleSignOut() {
     if (isGuest) {
-      // Guest: don't clear sessionStorage, just return to landing
+      // Guest: just return to landing
       router.push("/");
     } else {
-      // Supabase user
+      // Supabase user sign out
       const { error } = await supabase.auth.signOut();
       if (!error) {
         router.push("/");
@@ -65,49 +64,84 @@ export default function Navigation({
   }
 
   return (
-    <nav className="flex flex-col transform scale-95 h-full space-y-3 w-full">
-      {pages
-        .filter((item) => item.id !== "signout")
-        .map(({ id, label, icon, href }) => {
-          const isActive = href !== "/" && pathname.startsWith(href);
+    <nav className="flex flex-col justify-between h-full space-y-3 transform scale-95">
 
-          return (
+      {/* Main navigation items */}
+      <div className="flex flex-col space-y-2">
+        {pages
+          .filter((item) => item.id !== "signout")
+          .map(({ id, label, icon, href }) => {
+            const isActive = href !== "/" && pathname.startsWith(href);
+
+            return (
+              <button
+                key={id}
+                onClick={() => router.push(href)}
+                className={`
+                  flex items-center px-4 py-2 rounded-md text-sm font-serif cursor-pointer
+                  transition-all duration-300
+                  ${collapsed ? "justify-center" : "justify-start space-x-3"}
+                  ${
+                    isActive
+                      ? "transform scale-105 bg-gradient-to-r from-blue-500 to-amber-400 text-slate-800 font-stretch-50% shadow-md"
+                      : "text-cyan-100 hover:text-slate-800 hover:bg-gradient-to-r hover:from-blue-400 hover:to-amber-400"
+                  }
+                `}
+              >
+                {/* Icon wrapper */}
+                <span className="flex-shrink-0 ml-2.5 flex items-center justify-center">
+                  {icon}
+                </span>
+
+                {/* Text with smooth expand/collapse */}
+                <span
+                  className={`
+                    ml-2 inline-block overflow-hidden whitespace-nowrap
+                    transition-[max-width,opacity] duration-300 ease-in-out
+                    ${collapsed ? "max-w-0 opacity-0" : "max-w-[200px] opacity-100"}
+                  `}
+                >
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+      </div>
+
+      {/* Bottom nav item: Sign Out / Account */}
+      <div>
+        {pages
+          .filter((item) => item.id === "signout")
+          .map(({ id, label, icon }) => (
             <button
               key={id}
-              onClick={() => router.push(href)}
-              className={`flex items-center ${
-                collapsed ? "justify-center" : "space-x-4 space-y-0.5"
-              } px-4 py-1 rounded-md text-sm font-serif cursor-pointer
-                ${
-                  isActive
-                    ? "bg-blue-200 text-blue-800"
-                    : "text-cyan-50 hover:text-blue-200 active:bg-blue-200"
-                }`}
+              onClick={handleSignOut}
+              className={`
+                flex items-center px-3 py-1 rounded-md text-sm font-medium cursor-pointer border shadow-mds
+                transition-all duration-300
+                ${collapsed ? "justify-center" : "justify-start space-x-3"}
+                text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-red-500 hover:to-pink-500
+                active:bg-gradient-to-r active:from-red-600 active:to-pink-600
+              `}
             >
-              <span>{icon}</span>
-              {!collapsed && <span>{label}</span>}
+              {/* Icon wrapper */}
+              <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center ml-1.5 rounded-full border border-gray-700 text-white">
+                {icon}
+              </span>
+
+              {/* Text with smooth expand/collapse */}
+              <span
+                className={`
+                  inline-block overflow-hidden whitespace-nowrap
+                  transition-[max-width,opacity] duration-300 ease-in-out
+                  ${collapsed ? "ml-1.5 max-w-0 opacity-0" : "max-w-[200px] opacity-100"}
+                `}
+              >
+                {isGuest ? "Exit Guest Mode" : label}
+              </span>
             </button>
-          );
-        })}
-
-      <div className="flex-grow"></div>
-
-      {/* Bottom nav item: signout/account */}
-      {pages
-        .filter((item) => item.id === "signout")
-        .map(({ id, label, icon }) => (
-          <button
-            key={id}
-            onClick={handleSignOut}
-            className={`flex items-center ${
-              collapsed ? "justify-center" : "space-x-2"
-            } px-4 py-2 rounded-md text-sm font-medium cursor-pointer border shadow-mds
-              text-gray-600 hover:text-primary active:bg-blue-200`}
-          >
-            <span className = "text-white">{icon}</span>
-            {!collapsed && <span className = "text-gray-200">{isGuest ? "Exit Guest Mode" : label}</span>}
-          </button>
-        ))}
+          ))}
+      </div>
     </nav>
   );
 }

@@ -88,6 +88,199 @@
 # | **Delete** | `DELETE /api/sentiment/{uuid}` | Delete a stored summary                   |
 
 # backend/sentiment_api.py
+from fastapi import FastAPI, HTTPException, Header
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional
+from transformers import pipeline
+import numpy as np
+import uuid
+from supabase import create_client, Client
+
+# ------------------------
+# Supabase client
+# ------------------------
+SUPABASE_URL = NEXT_PUBLIC_SUPABASE_URL
+SUPABASE_KEY = SUPABASE_SERVICE_ROLE_KEY
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# ------------------------
+# API Key validation
+# ------------------------
+VALID_API_KEYS = {"my-secret-key"}  # Replace with your key
+def check_api_key(x_api_key: str = Header(...)):
+    if x_api_key not in VALID_API_KEYS:
+        raise HTTPException(status_code=401, detail="Invalid API Key")
+
+# ------------------------
+# FastAPI setup
+# ------------------------
+app = FastAPI(
+    title="📈 Financial Sentiment API",
+    version="1.0.0",
+    description="""
+Analyze financial news headlines with **FinBERT**  
+to extract **positive, neutral, or negative sentiment**.
+
+### Features
+- 📰 Headline sentiment scoring  
+- 📊 Summary counts and percentages  
+- 🔄 Update / Delete functionality  
+- ⏳ Records automatically expire after 24 hours  
+- 🔑 Secured with API keys  
+
+### Model
+- **finbert-tone** → `ProsusAI/finbert`
+    """,
+)
+
+# ------------------------
+# CORS
+# ------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://thetradingoasis.vercel.app/"],  # adjust in production
+    allow_credentials=True,
+    allow_methods=["GET","POST","PUT","DELETE"],
+    allow_headers=["*"],
+)
+
+# ------------------------
+# Request and Response models
+# ------------------------
+
+class SentimentRequest(BaseModel):
+    ticker: Optional[str] = Field(None, description="Ticker symbol (required for POST)")
+    headlines: List[str] = Field(..., description="List of news headlines to analyze")
+
+class SentimentItem(BaseModel):
+    headline: str = Field(..., description="Original headline text")
+    label: str = Field(..., description="Predicted sentiment (positive/neutral/negative)")
+    score: float = Field(..., description="Confidence score (0.0–1.0)")
+    high_confidence: bool = Field(..., description="Whether score passes confidence threshold")
+    model_used: str = "finbert-tone"
+
+class SentimentSummary(BaseModel):
+    counts: Dict[str, int] = Field(..., description="Raw counts per sentiment")
+    percentages: Dict[str, float] = Field(..., description="Percentages per sentiment")
+    total: int = Field(..., description="Total number of headlines analyzed")
+
+class SentimentResponse(BaseModel):
+    id: str = Field(..., description="Unique identifier of the sentiment record")
+    ticker: str = Field(..., description="Associated stock ticker")
+    model_used: str = "finbert-tone"
+    headlines: List[str] = Field(..., description="Headlines analyzed")
+    items: List[SentimentItem] = Field(..., description="Per-headline sentiment results")
+    summary: SentimentSummary = Field(..., description="Aggregated summary results")
+
+# ------------------------
+# Load model
+# ------------------------
+MODEL = "ProsusAI/finbert"
+nlp = pipeline("sentiment-analysis", model=MODEL, tokenizer=MODEL)
+
+# ------------------------
+# Helper: sentiment analysis
+# ------------------------
+def analyze_headlines(headlines: List[str], min_score: float = 0.7):
+    preds = nlp(headlines)
+    items = []
+    for text, p in zip(headlines, preds):
+        score = float(p["score"])
+        label = p["label"].lower() if score >= min_score else "neutral"
+        high_confidence = score >= min_score
+        items.append({
+            "headline": text,
+            "label": label,
+            "score": score if high_confidence else 0.0,
+            "high_confidence": high_confidence,
+            "model_used": "finbert-tone"
+        })
+
+    counts = {"positive":0, "neutral":0, "negative":0}
+    for r in items:
+        counts[r["label"]] += 1
+    total = sum(counts.values()) or 1
+    percentages = {k: round(v*100/total,1) for k,v in counts.items()}
+    summary = {"counts": counts, "percentages": percentages, "total": total}
+
+    return items, summary
+
+# ------------------------
+# CRUD Endpoints
+# ------------------------
+@app.post("/api/sentiment", response_model=SentimentResponse, summary="Create Sentiment Record")
+def create_sentiment(body: SentimentRequest, x_api_key: str = Header(...)):
+    check_api_key(x_api_key)
+    if not body.headlines or not body.ticker:
+        raise HTTPException(status_code=400, detail="headlines and ticker are required")
+
+    items, summary = analyze_headlines(body.headlines)
+
+    # Delete existing records for this ticker
+    supabase.table("sentiment_results").delete().eq("ticker", body.ticker).execute()
+
+    new_id = str(uuid.uuid4())
+    record = {
+        "id": new_id,
+        "ticker": body.ticker,
+        "model_used": "finbert-tone",
+        "headlines": body.headlines,
+        "items": items,
+        "summary": summary
+    }
+    supabase.table("sentiment_results").insert(record).execute()
+    return record
+
+@app.get("/api/sentiment/{id}", response_model=SentimentResponse, summary="Retrieve Sentiment Record")
+def get_sentiment(id: str, x_api_key: str = Header(...)):
+    check_api_key(x_api_key)
+    existing = supabase.table("sentiment_results").select("*").eq("id", id).execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Sentiment not found")
+    return existing.data[0]
+
+@app.put("/api/sentiment/{id}", response_model=SentimentResponse, summary="Update Sentiment Record")
+def update_sentiment(id: str, body: SentimentRequest, x_api_key: str = Header(...)):
+    check_api_key(x_api_key)
+    if not body.headlines:
+        raise HTTPException(status_code=400, detail="headlines are required")
+
+    existing = supabase.table("sentiment_results").select("*").eq("id", id).execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Sentiment not found")
+    record = existing.data[0]
+
+    if body.headlines == record["headlines"]:
+        return record
+
+    items, summary = analyze_headlines(body.headlines)
+
+    supabase.table("sentiment_results").delete().eq("id", id).execute()
+    new_id = str(uuid.uuid4())
+    updated = {
+        "id": new_id,
+        "ticker": record["ticker"],
+        "model_used": "finbert-tone",
+        "headlines": body.headlines,
+        "items": items,
+        "summary": summary
+    }
+    supabase.table("sentiment_results").insert(updated).execute()
+    return updated
+
+@app.delete("/api/sentiment/{id}", summary="Delete Sentiment Record")
+def delete_sentiment(id: str, x_api_key: str = Header(...)):
+    check_api_key(x_api_key)
+    existing = supabase.table("sentiment_results").select("*").eq("id", id).execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Sentiment not found")
+    supabase.table("sentiment_results").delete().eq("id", id).execute()
+    return {"detail": "Deleted successfully"}
+
+
+# uses the pick from two models methods
+# backend/sentiment_api.py
 # from fastapi import FastAPI, HTTPException, Header
 # from fastapi.middleware.cors import CORSMiddleware
 # from fastapi.responses import JSONResponse
@@ -397,6 +590,94 @@
 #         raise HTTPException(status_code=404, detail="Sentiment not found")
 #     supabase.table("sentiment_results").delete().eq("id", id).execute()
 #     return {"detail": "Deleted successfully"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
