@@ -213,7 +213,6 @@ def analyze_headlines(headlines: List[str], min_confidence: float = 0.7):
                 "label": p["label"].lower(),
                 "score": score,
                 "high_confidence": score >= min_confidence,
-                "model_used": "finbert-tone"
             })
     counts = {"positive":0, "neutral":0, "negative":0}
     for item in items:
@@ -250,14 +249,12 @@ def analyze_headlines(headlines: List[str], min_confidence: float = 0.7):
                                 "label": "positive",
                                 "score": 0.93,
                                 "high_confidence": True,
-                                "model_used": "finbert-tone"
                             },
                             {
                                 "headline": "Investors worry about Apple supply chain issues",
                                 "label": "negative",
                                 "score": 0.88,
                                 "high_confidence": True,
-                                "model_used": "finbert-tone"
                             }
                         ],
                         "summary": {
@@ -286,13 +283,16 @@ def create_sentiment(
     check_api_key(x_api_key)
     if not body.headlines or not body.ticker:
         raise HTTPException(status_code=400, detail="headlines and ticker are required")
+    
     items, summary = analyze_headlines(body.headlines, body.min_confidence)
     new_id = str(uuid.uuid4())
     record = {"id": new_id, "ticker": body.ticker, "model_used":"finbert-tone",
               "headlines": body.headlines, "items": items, "summary": summary,
               "min_confidence": body.min_confidence}
+    
     supabase.table("sentiment_results").insert(record).execute()
     return record
+
 
 @app.get(
     "/api/sentiment/{id}",
@@ -317,14 +317,12 @@ def create_sentiment(
                                 "label": "positive",
                                 "score": 0.93,
                                 "high_confidence": True,
-                                "model_used": "finbert-tone"
                             },
                             {
                                 "headline": "Investors worry about Apple supply chain issues",
                                 "label": "negative",
                                 "score": 0.88,
                                 "high_confidence": True,
-                                "model_used": "finbert-tone"
                             }
                         ],
                         "summary": {
@@ -332,21 +330,23 @@ def create_sentiment(
                             "percentages": {"positive": 50.0, "neutral": 0.0, "negative": 50.0},
                             "total": 2
                         },
-                        "min_confidence": 0.7
+                        "min_confidence": 0.7,
+                        "created_at": "2025-09-10 12:46:37.325673+00"  # <-- included
                     }
                 }
             }
         }
     }
 )
+
 def get_sentiment(id: str, x_api_key: str = Header(...)):
     check_api_key(x_api_key)
     existing = supabase.table("sentiment_results").select("*").eq("id", id).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Sentiment not found")
-    record = existing.data[0]
-    record["id"] = id
-    return record
+    
+    return existing.data[0]
+
 
 @app.put(
     "/api/sentiment/{id}",
@@ -371,14 +371,12 @@ def get_sentiment(id: str, x_api_key: str = Header(...)):
                                 "label": "positive",
                                 "score": 0.95,
                                 "high_confidence": True,
-                                "model_used": "finbert-tone"
                             },
                             {
                                 "headline": "Supply chain issues continue to worry investors",
                                 "label": "negative",
                                 "score": 0.85,
                                 "high_confidence": True,
-                                "model_used": "finbert-tone"
                             }
                         ],
                         "summary": {
@@ -386,7 +384,7 @@ def get_sentiment(id: str, x_api_key: str = Header(...)):
                             "percentages": {"positive": 50.0, "neutral": 0.0, "negative": 50.0},
                             "total": 2
                         },
-                        "min_confidence": 0.8
+                        "min_confidence": 0.8,
                     }
                 }
             }
@@ -404,12 +402,14 @@ def update_sentiment(id: str, body: SentimentRequest = Body(..., example={
     existing = supabase.table("sentiment_results").select("*").eq("id", id).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Sentiment not found")
+    
     record = existing.data[0]
     items, summary = analyze_headlines(body.headlines, body.min_confidence)
     new_id = str(uuid.uuid4())
     updated = {"id": new_id, "ticker": record["ticker"], "model_used":"finbert-tone",
                "headlines": body.headlines, "items": items, "summary": summary,
                "min_confidence": body.min_confidence}
+    
     supabase.table("sentiment_results").delete().eq("id", id).execute()
     supabase.table("sentiment_results").insert(updated).execute()
     return updated
@@ -439,8 +439,6 @@ def delete_sentiment(id: str, x_api_key: str = Header(...)):
         raise HTTPException(status_code=404, detail="Sentiment not found")
     supabase.table("sentiment_results").delete().eq("id", id).execute()
     return {"id": id, "detail": "Deleted successfully"}
-
-
 
 
 # uses the pick from two models methods

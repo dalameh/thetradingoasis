@@ -55,6 +55,7 @@ create table if not exists sentiment_results (
   headlines jsonb not null,                  -- array of input headlines
   items jsonb not null,                      -- structured items returned by model
   summary jsonb not null,                    -- sentiment summary
+  min_confidence numeric NOT NULL DEFAULT 0.7 -- min confidence level
   created_at timestamptz default now()
 );
 
