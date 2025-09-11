@@ -102,6 +102,9 @@ import requests
 # ------------------------
 SUPABASE_URL = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+HF_API_TOKEN = os.environ.get("HF_API_TOKEN")
+VALID_SENTIMENT_API_KEY = os.environ.get("SENTIMENT_API_KEY")
+
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError("Supabase environment variables not set")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -110,7 +113,6 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Hugging Face API client
 # ------------------------
 HF_API_URL = "https://api-inference.huggingface.co/models/ProsusAI/finbert"
-HF_API_TOKEN = os.environ.get("HF_API_TOKEN")
 if not HF_API_TOKEN:
     raise RuntimeError("HF_API_TOKEN not set in environment variables")
 headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
@@ -124,7 +126,8 @@ def query_huggingface(headlines: List[str]):
 # ------------------------
 # API Key validation
 # ------------------------
-VALID_API_KEYS = {"a4c9f2e1-5b7d-4a8f-9e3c-1d2b6f7a8c9e"}
+VALID_API_KEYS = {VALID_SENTIMENT_API_KEY}
+
 def check_api_key(x_api_key: str = Header(...)):
     if x_api_key not in VALID_API_KEYS:
         raise HTTPException(status_code=401, detail="Invalid API Key")
