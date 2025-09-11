@@ -209,13 +209,19 @@ class SentimentResponse(BaseModel):
 # ------------------------
 def analyze_headlines(headlines: List[str], min_score: float = 0.7):
     preds = query_huggingface(headlines)
-
+    print(preds)
     items = []
     for text, p in zip(headlines, preds):
-        best = max(p, key=lambda x: x["score"])
+        # Hugging Face returns nested lists when multiple headlines are passed
+        if isinstance(p, list):
+            best = max(p, key=lambda x: x["score"])
+        else:
+            best = p
+
         score = float(best["score"])
         label = best["label"].lower() if score >= min_score else "neutral"
         high_confidence = score >= min_score
+
         items.append({
             "headline": text,
             "label": label,
@@ -224,6 +230,7 @@ def analyze_headlines(headlines: List[str], min_score: float = 0.7):
             "model_used": "finbert-tone"
         })
 
+    # Build summary
     counts = {"positive": 0, "neutral": 0, "negative": 0}
     for r in items:
         counts[r["label"]] += 1
