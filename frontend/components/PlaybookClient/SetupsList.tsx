@@ -149,7 +149,7 @@ export default function SetupsList({ initialSetups }: SetupsListProps) {
             setIsCreating(true);
             setEditingSetup(null);
           }}
-          className="flex items-center text-sm gap-2 p-2 rounded-lg border mr-4.5 h-10 border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-100 shadow-lg"
+          className="flex items-center text-sm gap-2 p-2 rounded-lg border h-10 border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-100 shadow-lg"
         >
           <Plus className="w-5 h-5" />
           <span>{" "}Add Setup</span>

@@ -35,7 +35,7 @@ export default function NewsTable({ news, rpp }: NewsTableProps) {
   const pageData = sortedNews.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
   return (
-    <div className="overflow-x-auto ">
+    <div className="overflow-x-visible">
        {totalPages >= 1 && (
           <Pagination totalPages={totalPages} page={page} setPage={setPage} maxButtons={3} />
       )}
@@ -43,13 +43,13 @@ export default function NewsTable({ news, rpp }: NewsTableProps) {
           <table className="w-full border-collapse text-xs table-fixed">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-1/6">
+              <th className="px-4 py-4 text-center sm-text-left font-semibold text-gray-700 uppercase tracking-wider w-1/6">
                 Source
               </th>
-              <th className="px-4 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-1/6">
+              <th className="px-4 py-4 text-center sm:text-left font-semibold text-gray-700 uppercase tracking-wider w-1/6">
                 Date
               </th>
-              <th className="px-4 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-2/6">
+              <th className="px-4 py-4 text-center font-semibold text-gray-700 uppercase tracking-wider w-2/6">
                 Title
               </th>
               {/* <th className="px-4 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-2/6">

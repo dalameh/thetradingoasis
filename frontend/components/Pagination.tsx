@@ -74,14 +74,14 @@ if (totalPages <= 0) return null; // safeguard
   return (
     <div className={`w-full ${appPage === "Watchlist" ? "bg-white" : "bg-gray-100"} pb-3`}>
       {/* Outer strip centered; arrows won't drift because inner width is constant */}
-      <div className="mx-auto flex items-center justify-center gap-3">
+      <div className="mx-auto transform scale-80 sm:scale-90 flex items-center justify-center">
         {/* Prev (fixed position) */}
         <button
           type="button"
           onClick={goPrev}
           disabled={page === 0}
           aria-label="Previous page"
-          className={`w-10 h-10 shrink-0 rounded-full border text-gray-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`w-10 h-10 shrink-0 rounded-full border pb-1 text-gray-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             page === 0
               ? "opacity-40 cursor-not-allowed"
               : "bg-white border-gray-300 hover:bg-gray-300 active:bg-gray-200"
@@ -92,7 +92,7 @@ if (totalPages <= 0) return null; // safeguard
 
         {/* Center group with fixed width */}
         <div
-          className="flex items-center justify-center gap-2 tabular-nums overflow-hidden p-1"
+          className="flex items-center transform scale-90 justify-center gap-2 tabular-nums overflow-hidden p-1"
           style={{
             minWidth: worstCaseTokens * 40 + (worstCaseTokens - 1) * GAP_PX,
             maxWidth: "100%", // never overflow screen
@@ -113,10 +113,10 @@ if (totalPages <= 0) return null; // safeguard
               onClick={() => setPage(t)}
               aria-label={`Page ${t + 1}`}
               aria-current={page === t ? "page" : undefined}
-              className={`w-10 h-10 flex items-center justify-center rounded-full border transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`w-9 h-9 flex items-center justify-center rounded-full border transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 page === t
                   ? "bg-blue-600 border-blue-600 text-white text-md font-semibold shadow-sm scale-105"
-                  : "bg-white border-gray-300 text-gray-700 text-sm hover:bg-gray-100 active:scale-110 active:bg-gray-200"
+                  : "bg-white border-gray-300 text-gray-700 text-sm hover:bg-gray-200 active:scale-110 active:bg-gray-200"
               }`}
             >
               {t + 1}
@@ -131,7 +131,7 @@ if (totalPages <= 0) return null; // safeguard
           onClick={goNext}
           disabled={page === totalPages - 1}
           aria-label="Next page"
-          className={`w-10 h-10 shrink-0 rounded-full border text-gray-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`w-10 h-10 shrink-0 rounded-full border pb-1 text-gray-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             page === totalPages - 1
               ? "opacity-40 cursor-not-allowed"
               : "bg-white border-gray-300 hover:bg-gray-300 active:bg-gray-200"

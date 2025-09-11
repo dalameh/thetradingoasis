@@ -30,7 +30,7 @@ function SetupItemComponent({ setup, onEdit, onDelete }: SetupItemProps) {
   };
 
   return (
-    <div className="bg-gray-900 text-gray-100 p-6 rounded-xl transform scale-95 hover:scale-100 shadow-lg border border-gray-800 hover:shadow-2xl transition relative">
+    <div className="bg-gray-900 text-gray-100 p-6 rounded-xl transform scale-95 hover:scale-98 shadow-lg border border-gray-800 hover:shadow-2xl transition relative">
       <div className="absolute top-3 right-3">
         <SetupMenu onEdit={() => onEdit(setup)} onDelete={() => onDelete(setup.id)} />
       </div>

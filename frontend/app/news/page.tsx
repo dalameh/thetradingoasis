@@ -6,7 +6,9 @@ export default function NewsPage() {
   return (
     <main>
       <PageHeader title="Market News" />
-      <div className="min-h-screen p-8 pb-20">
+      <div         
+        className="min-h-screen p-8 pb-80 space-y-8"      
+      >
         <SearchBar />
         <NewsContentMain />
       </div>

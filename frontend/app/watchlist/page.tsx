@@ -52,7 +52,9 @@ export default function WatchlistPage() {
 
   // Summary
   const cumPercent = watchlist.reduce((a,b)=>a+b.changePct,0);
+
   let topGainer: string | null = null, topLoser: string | null = null;
+  
   let maxChange = -Infinity, minChange = Infinity;
   for (const t of watchlist) {
     if (t.changePct > maxChange && t.changePct > 0) { maxChange = t.changePct; topGainer = t.ticker; }
@@ -186,7 +188,7 @@ export default function WatchlistPage() {
                 </div>
               </div>
 
-              <div className={`text-xl font-semibold ${cumPercent < 0 ? "text-red-600" : "text-green-600"}`}>
+              <div className={`text-xl flex justify-center mb-4 font-semibold ${cumPercent < 0 ? "text-red-600" : "text-green-600"}`}>
                 {cumPercent.toFixed(2)}% (today)
               </div>
               {overallSparkline.length > 1 && (

@@ -30,18 +30,25 @@ function SearchContent() {
   };
 
   return (
-    <div className="bg-gray-100 flex flex-col sm:flex-row justify-center w-full max-w-sm mx-auto p-2 rounded-lg mb-2">
+    <div className="bg-gray-100 flex justify-center mb-1 w-full max-w-sm mx-auto p-2 rounded-lg">
       <form
         onSubmit={handleSearch}
-        className="flex flex-col sm:flex-row w-full sm:space-x-2 space-y-2 sm:space-y-0"
+        className="flex w-full space-x-2"
       >
         <input
           type="text"
           placeholder="Enter ticker or company (eg. NVDA)"
           value={input}
           onChange={(e) => setInput(e.target.value.toUpperCase())}
-          className="bg-white shadow-md text-black flex-grow min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          autoComplete="off"
+          className="
+              bg-white text-black
+              text-sm sm:text-md
+              placeholder:text-sm sm:placeholder:text-md
+              shadow-md flex-grow min-w-0 px-4 py-2
+              border border-gray-300 rounded-lg
+              focus:outline-none focus:ring-2 focus:ring-blue-500
+            "          
+            autoComplete="off"
         />
         
         <div className="flex items-center justify-end">

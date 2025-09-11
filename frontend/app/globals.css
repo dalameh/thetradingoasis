@@ -235,3 +235,7 @@ html, body, #__next {
   overflow: clip;
   padding-right: 0.5rem; /* space for scrollbar */
 }
+
+.recharts-wrapper {
+  overflow: visible !important;
+}

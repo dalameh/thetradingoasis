@@ -143,11 +143,11 @@ function NewsContent() {
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
         <div className="bg-gray-100 rounded-xl p-6 flex flex-col justify-center">
           <h3 className="text-base font-semibold text-black mb-4 text-center">Sentiment Overview</h3>
-          <Suspense fallback={<div className="h-72 flex items-center justify-center animate-pulse bg-gray-100 rounded-xl" />}>
+          {/* <Suspense fallback={<div className="h-72 flex items-center justify-center animate-pulse bg-gray-100 rounded-xl" />}>
             <ErrorBoundary fallback={<div className="h-72 text-red-600 text-center">Could not load sentiment.</div>}>
               <SentimentIsland ticker = {searchForFetch} headlines={headlines} />
             </ErrorBoundary>
-          </Suspense>
+          </Suspense> */}
         </div>
 
         {/* --- News Table */}

@@ -49,40 +49,43 @@ export default function SentimentIsland({ ticker, headlines }: SentimentIslandPr
         setLoadingSentiment(true);
         setError(null);
 
-        // 1️⃣ Fetch the latest row for this ticker
+        // 1️⃣ Fetch the last two rows for this ticker
         const { data: rows, error: supabaseError } = await supabase
           .from("sentiment_results")
           .select("*")
           .eq("ticker", ticker)
           .order("created_at", { ascending: false }) // newest first
-          .limit(1);
+          .limit(2); // <-- fetch last two rows
 
         console.log("Supabase", rows);
         if (supabaseError) throw supabaseError;
 
         let foundMatch = false;
+
         if (rows && rows.length > 0) {
-          const row = rows[0]; // only the latest row
-          const storedHeadlines: string[] = row.headlines ?? [];
-          const sameHeadlines =
-            storedHeadlines.length === headlines.length &&
-            storedHeadlines.every((h, i) => h === headlines[i]);
+          for (const row of rows) {
+            const storedHeadlines: string[] = row.headlines ?? [];
+            const sameHeadlines =
+              storedHeadlines.length === headlines.length &&
+              storedHeadlines.every((h, i) => h === headlines[i]);
 
-          if (sameHeadlines) {
-            const percentages: SentimentItem[] = Object.entries(
-              row.summary.percentages
-            ).map(([name, value]) => ({ name, value: Number(value) }));
+            if (sameHeadlines) {
+              const percentages: SentimentItem[] = Object.entries(
+                row.summary.percentages
+              ).map(([name, value]) => ({ name, value: Number(value) }));
 
-            if (!cancelled) {
-              setSentiment(percentages);
-              setLoadingSentiment(false);
+              if (!cancelled) {
+                setSentiment(percentages);
+                setLoadingSentiment(false);
+              }
+              foundMatch = true;
+              break; // stop checking after first match
             }
-            foundMatch = true;
           }
         }
 
         console.log(foundMatch);
-        // 2️⃣ If no match, call the Next.js API route
+        // 2️⃣ If no match, call API as before
         if (!foundMatch) {
           const res = await fetch("/api/sentiment", {
             method: "POST",
@@ -104,7 +107,6 @@ export default function SentimentIsland({ ticker, headlines }: SentimentIslandPr
             setLoadingSentiment(false);
           }
         }
-
       } catch (err) {
         if (!cancelled) {
           const message = err instanceof Error ? err.message : String(err);
@@ -113,6 +115,7 @@ export default function SentimentIsland({ ticker, headlines }: SentimentIslandPr
         }
       }
     })();
+
 
     return () => {
       cancelled = true;
@@ -143,7 +146,7 @@ export default function SentimentIsland({ ticker, headlines }: SentimentIslandPr
     if (!sentiment.length) return null;
 
     return (
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" className="overflow-visible">
         <PieChart>
           <Pie
             data={sentiment}
@@ -170,7 +173,7 @@ export default function SentimentIsland({ ticker, headlines }: SentimentIslandPr
               />
             ))}
           </Pie>
-          <Tooltip formatter={(val) => `${val}%`} />
+          <Tooltip wrapperStyle={{ overflow: "visible", zIndex: 1000 }} formatter={(val) => `${val}%`} />
           <Legend verticalAlign="bottom" height={36} />
         </PieChart>
       </ResponsiveContainer>
