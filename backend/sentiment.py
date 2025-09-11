@@ -137,7 +137,7 @@ def check_api_key(x_api_key: str = Header(...)):
 # ------------------------
 app = FastAPI(
     title="📈 Financial Sentiment API",
-    version="2.3.0",
+    version="2.4.0",
     description="""
 Analyze financial news headlines with **FinBERT**.
 
@@ -146,6 +146,7 @@ Analyze financial news headlines with **FinBERT**.
 - 🎯 Users can set `min_confidence` to filter which predictions count in the summary.
 - 📊 Summary only counts high-confidence predictions.
 - 💾 CRUD operations are stored in Supabase.
+- ⏳ Resources remain active for only 12 hours.
 - 🔑 Secured with API keys.
 """
 )
@@ -206,17 +207,18 @@ class SentimentResponse(BaseModel):
 def analyze_headlines(headlines: List[str], min_confidence: float = 0.7):
     preds = query_huggingface(headlines)
     items = []
-    for headline, pred_list in zip(headlines, preds):
-        if not isinstance(pred_list, list):
-            pred_list = [pred_list]
-        for p in pred_list:
-            score = float(p["score"])
-            items.append({
-                "headline": headline,
-                "label": p["label"].lower(),
-                "score": score,
-                "high_confidence": score >= min_confidence,
-            })
+    pred_list = preds[0]
+    if not isinstance(pred_list, list):
+        pred_list = [pred_list]
+    for p in pred_list:
+        score = float(p["score"])
+        items.append({
+            "headline": p["headline"],
+            "label": p["label"].lower(),
+            "score": score,
+            "high_confidence": score >= min_confidence,
+    })
+        
     counts = {"positive":0, "neutral":0, "negative":0}
     for item in items:
         if item["high_confidence"]:

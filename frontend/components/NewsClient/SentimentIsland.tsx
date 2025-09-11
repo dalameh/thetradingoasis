@@ -9,26 +9,32 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { supabase } from "@/lib/supabaseFrontendClient";
 
 type SentimentItem = { name: string; value: number };
 
 interface SentimentIslandProps {
+  ticker: string;
   headlines: string[];
 }
 
-const COLORS = ["#22c55e", "#0088ff", "#ef4444"];
+// Map sentiment names to colors
+const SENTIMENT_COLORS: Record<string, string> = {
+  positive: "#22c55e", // green
+  neutral: "#0088ff",  // blue
+  negative: "#ef4444", // red
+};
 
-export default function SentimentIsland({ headlines }: SentimentIslandProps) {
+export default function SentimentIsland({ ticker, headlines }: SentimentIslandProps) {
   const [sentiment, setSentiment] = useState<SentimentItem[]>([]);
   const [loadingSentiment, setLoadingSentiment] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Memoize payload so effect only runs when headlines truly change
-  const payload = useMemo(() => ({ headlines }), [headlines]);
+  const payload = useMemo(() => ({ headlines, ticker, min_confidence: 0.7 }), [headlines, ticker]);
 
   useEffect(() => {
-    if (!payload.headlines || payload.headlines.length === 0) {
+    if (!headlines || headlines.length === 0) {
       setSentiment([]);
       setLoadingSentiment(true);
       setError(null);
@@ -43,62 +49,82 @@ export default function SentimentIsland({ headlines }: SentimentIslandProps) {
         setLoadingSentiment(true);
         setError(null);
 
-        const res = await fetch("/api/sentiment", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        });
+        // 1️⃣ Fetch the latest row for this ticker
+        const { data: rows, error: supabaseError } = await supabase
+          .from("sentiment_results")
+          .select("*")
+          .eq("ticker", ticker)
+          .order("created_at", { ascending: false }) // newest first
+          .limit(1);
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        console.log("Supabase", rows);
+        if (supabaseError) throw supabaseError;
 
-        const data = await res.json();
+        let foundMatch = false;
+        if (rows && rows.length > 0) {
+          const row = rows[0]; // only the latest row
+          const storedHeadlines: string[] = row.headlines ?? [];
+          const sameHeadlines =
+            storedHeadlines.length === headlines.length &&
+            storedHeadlines.every((h, i) => h === headlines[i]);
 
-        const percentages: SentimentItem[] = data.summary?.percentages
-          ? Object.entries(data.summary.percentages).map(([name, value]) => ({
-              name,
-              value: Number(value),
-            }))
-          : [];
+          if (sameHeadlines) {
+            const percentages: SentimentItem[] = Object.entries(
+              row.summary.percentages
+            ).map(([name, value]) => ({ name, value: Number(value) }));
 
-        if (!cancelled) {
-          setSentiment(percentages);
-          setLoadingSentiment(false);
+            if (!cancelled) {
+              setSentiment(percentages);
+              setLoadingSentiment(false);
+            }
+            foundMatch = true;
+          }
         }
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          if (err.name === "AbortError") return;
-          console.error("Sentiment fetch error:", err);
+
+        console.log(foundMatch);
+        // 2️⃣ If no match, call the Next.js API route
+        if (!foundMatch) {
+          const res = await fetch("/api/sentiment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ headlines, ticker, min_confidence: 0.7 }),
+            signal: controller.signal,
+          });
+
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          console.log("API RETURN", data);
+
+          const percentages: SentimentItem[] = Object.entries(
+            data.summary?.percentages ?? {}
+          ).map(([name, value]) => ({ name, value: Number(value) }));
+
           if (!cancelled) {
-            setError(err.message ?? "Sentiment request failed");
+            setSentiment(percentages);
             setLoadingSentiment(false);
           }
-        } else {
-          // handle non-Error objects just in case
-          console.error("Sentiment fetch error:", err);
-          if (!cancelled) {
-            setError("Sentiment request failed");
-            setLoadingSentiment(false);
-          }
+        }
+
+      } catch (err) {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : String(err);
+          setError(message);
+          setLoadingSentiment(false);
         }
       }
     })();
-    
+
     return () => {
       cancelled = true;
-      try {
-        controller.abort();
-      } catch {}
+      try { controller.abort(); } catch {}
     };
-  }, [payload]);
+  }, [payload, ticker, headlines]);
 
-  // Shimmer placeholder (chart-like) — NO header here
+  // Shimmer placeholder
   const ShimmerChart = (
     <div className="h-72 flex items-center justify-center" aria-hidden>
       <div className="relative w-40 h-40">
-        {/* base pulsing circle */}
         <div className="absolute inset-0 rounded-full bg-gray-100 animate-pulse" />
-        {/* decorative spinning "slices" border */}
         <div
           className="absolute inset-0 rounded-full border-4 animate-spin-reverse"
           style={{
@@ -113,7 +139,6 @@ export default function SentimentIsland({ headlines }: SentimentIslandProps) {
     </div>
   );
 
-  // Memoized chart subtree (recharts pieces)
   const chart = useMemo(() => {
     if (!sentiment.length) return null;
 
@@ -135,7 +160,7 @@ export default function SentimentIsland({ headlines }: SentimentIslandProps) {
             {sentiment.map((entry, idx) => (
               <Cell
                 key={idx}
-                fill={COLORS[idx % COLORS.length]}
+                fill={SENTIMENT_COLORS[entry.name] ?? "#888"} // fallback gray
                 strokeWidth={activeIndex === idx ? 4 : 1}
                 style={{
                   transform: activeIndex === idx ? "scale(1.05)" : "scale(1)",
@@ -152,27 +177,16 @@ export default function SentimentIsland({ headlines }: SentimentIslandProps) {
     );
   }, [sentiment, activeIndex]);
 
-  if (loadingSentiment) {
-    return ShimmerChart;
-  }
-
-  if (error) {
+  if (loadingSentiment) return ShimmerChart;
+  if (error)
     return (
       <div className="h-72 flex items-center justify-center">
         <p className="text-sm text-red-600">Error: {error}</p>
       </div>
     );
-  }
 
- // at this point, loadingSentiment is false
-if (sentiment.length === 0) {
-  // show "no high-confidence predictions"
-  return (
-    <p className="text-center text-gray-700">
-      No high-confidence predictions
-    </p>
-  );
-}
+  if (sentiment.length === 0)
+    return <p className="text-center text-gray-700">No high-confidence predictions</p>;
 
   return <div className="h-72 flex items-center justify-center overflow-visible">{chart}</div>;
 }

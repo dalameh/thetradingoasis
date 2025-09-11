@@ -1,208 +1,193 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React, { ReactNode, ErrorInfo, Suspense, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 
-export default function NewsContent() {
-  return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white rounded-xl shadow-md p-6 w-full max-w-4xl">
-        <h1 className="text-2xl font-bold mb-4">Blank Page</h1>
-        <p className="text-gray-600">This is a blank page skeleton. Start building your content here.</p>
-      </div>
-    </main>
-  );
+// --- Dynamic NewsTable ---
+const NewsTable = dynamic(() => import("@/components/NewsClient/NewsTable"), { ssr: false });
+
+// --- Lazy-loaded SentimentIsland ---
+const SentimentIsland = dynamic(
+  () => import("@/components/NewsClient/SentimentIsland"),
+  { ssr: false }
+);
+
+interface ErrorBoundaryProps {
+  fallback?: ReactNode;
+  children: ReactNode;
 }
 
-// "use client";
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
 
-// import React, { ReactNode, ErrorInfo, Suspense, useEffect, useRef, useState } from "react";
-// import dynamic from "next/dynamic";
-// import { useSearchParams } from "next/navigation";
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false };
 
-// // --- Dynamic NewsTable ---
-// const NewsTable = dynamic(() => import("@/components/NewsClient/NewsTable"), { ssr: false });
+  static getDerivedStateFromError(_: Error): ErrorBoundaryState {
+    return { hasError: true };
+  }
 
-// // --- Lazy-loaded SentimentIsland ---
-// const SentimentIsland = dynamic(
-//   () => import("@/components/NewsClient/SentimentIsland"),
-//   { ssr: false }
-// );
+  componentDidUpdate(prevProps: ErrorBoundaryProps) {
+    if (prevProps.children !== this.props.children && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
 
-// interface ErrorBoundaryProps {
-//   fallback?: ReactNode;
-//   children: ReactNode;
-// }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("ErrorBoundary caught an error:", error, info);
+  }
 
-// interface ErrorBoundaryState {
-//   hasError: boolean;
-// }
+  render() {
+    return this.state.hasError
+      ? this.props.fallback ?? <div>Something went wrong.</div>
+      : this.props.children;
+  }
+}
 
-// export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-//   state: ErrorBoundaryState = { hasError: false };
+interface NewsItem {
+  title: string;
+  description: string;
+  date: string;
+  source: string;
+  url: string;
+}
 
-//   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
-//     return { hasError: true };
-//   }
+export default function NewsContent() {
+  const searchParams = useSearchParams();
+  const tickerParam = searchParams.get("search");
 
-//   componentDidUpdate(prevProps: ErrorBoundaryProps) {
-//     if (prevProps.children !== this.props.children && this.state.hasError) {
-//       this.setState({ hasError: false });
-//     }
-//   }
+  // --- State ---
+  const [currentSearch, setCurrentSearch] = useState("S&P 500");
+  const [searchForFetch, setSearchForFetch] = useState("S&P 500");
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [headlines, setHeadlines] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-//   componentDidCatch(error: Error, info: ErrorInfo) {
-//     console.error("ErrorBoundary caught an error:", error, info);
-//   }
+  const newsControllerRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(true);
 
-//   render() {
-//     return this.state.hasError
-//       ? this.props.fallback ?? <div>Something went wrong.</div>
-//       : this.props.children;
-//   }
-// }
+  // --- Track mounted state ---
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      newsControllerRef.current?.abort();
+    };
+  }, []);
 
-// interface NewsItem {
-//   title: string;
-//   description: string;
-//   date: string;
-//   source: string;
-//   url: string;
-// }
+  // --- Update displayed search instantly ---
+  useEffect(() => {
+    const newSearch = tickerParam || "S&P 500";
+    setCurrentSearch(newSearch);
+    setNews([]);
+    setHeadlines([]);
+    setLoading(true);
+    setSearchForFetch(newSearch); // trigger fetch
+  }, [tickerParam]);
 
-// export default function NewsContent() {
-//   const searchParams = useSearchParams();
-//   const tickerParam = searchParams.get("search");
+  // --- Fetch news with instant-leave ---
+  useEffect(() => {
+    if (!searchForFetch || !isMountedRef.current) return;
 
-//   // --- State ---
-//   const [currentSearch, setCurrentSearch] = useState("S&P 500");
-//   const [searchForFetch, setSearchForFetch] = useState("S&P 500");
-//   const [news, setNews] = useState<NewsItem[]>([]);
-//   const [headlines, setHeadlines] = useState<string[]>([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState<string | null>(null);
+    newsControllerRef.current?.abort();
+    const controller = new AbortController();
+    newsControllerRef.current = controller;
+    let cancelled = false;
 
-//   const newsControllerRef = useRef<AbortController | null>(null);
-//   const isMountedRef = useRef(true);
+    (async () => {
+      try {
+        const res = await fetch(`/api/news?company=${encodeURIComponent(searchForFetch + " stock")}`, { signal: controller.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (cancelled || !isMountedRef.current) return;
 
-//   // --- Track mounted state ---
-//   useEffect(() => {
-//     isMountedRef.current = true;
-//     return () => {
-//       isMountedRef.current = false;
-//       newsControllerRef.current?.abort();
-//     };
-//   }, []);
+        if (data.error) {
+          setError(data.error);
+          setNews([]);
+          setHeadlines([]);
+        } else {
+          const newsItems: NewsItem[] = data.news || [];
+          setNews(newsItems);
+          setHeadlines(newsItems.map((n) => n.title));
+          setError(null);
+        }
+        setLoading(false);
+     } catch (err: unknown) {
+          if (err instanceof DOMException && err.name === "AbortError") return;
 
-//   // --- Update displayed search instantly ---
-//   useEffect(() => {
-//     const newSearch = tickerParam || "S&P 500";
-//     setCurrentSearch(newSearch);
-//     setNews([]);
-//     setHeadlines([]);
-//     setLoading(true);
-//     setSearchForFetch(newSearch); // trigger fetch
-//   }, [tickerParam]);
+          const errorMessage =
+            err instanceof Error ? err.message : "Failed to fetch news";
 
-//   // --- Fetch news with instant-leave ---
-//   useEffect(() => {
-//     if (!searchForFetch || !isMountedRef.current) return;
+          if (cancelled) return;
 
-//     newsControllerRef.current?.abort();
-//     const controller = new AbortController();
-//     newsControllerRef.current = controller;
-//     let cancelled = false;
+          setError(errorMessage);
+          setNews([]);
+          setHeadlines([]);
+          setLoading(false);
+        }
+     })();
 
-//     (async () => {
-//       try {
-//         const res = await fetch(`/api/news?company=${encodeURIComponent(searchForFetch + " stock")}`, { signal: controller.signal });
-//         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-//         const data = await res.json();
-//         if (cancelled || !isMountedRef.current) return;
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [searchForFetch]);
 
-//         if (data.error) {
-//           setError(data.error);
-//           setNews([]);
-//           setHeadlines([]);
-//         } else {
-//           const newsItems: NewsItem[] = data.news || [];
-//           setNews(newsItems);
-//           setHeadlines(newsItems.map((n) => n.title));
-//           setError(null);
-//         }
-//         setLoading(false);
-//      } catch (err: unknown) {
-//           if (err instanceof DOMException && err.name === "AbortError") return;
+  return (
+    <div className="max-w-6xl mt-3 mx-auto">
+      <h2 className="text-1xl font-bold text-gray-900 text-center">{currentSearch}</h2>
 
-//           const errorMessage =
-//             err instanceof Error ? err.message : "Failed to fetch news";
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
+        <div className="bg-gray-100 rounded-xl p-6 flex flex-col justify-center">
+          <h3 className="text-base font-semibold text-black mb-4 text-center">Sentiment Overview</h3>
+          <Suspense fallback={<div className="h-72 flex items-center justify-center animate-pulse bg-gray-100 rounded-xl" />}>
+            <ErrorBoundary fallback={<div className="h-72 text-red-600 text-center">Could not load sentiment.</div>}>
+              <SentimentIsland ticker = {searchForFetch} headlines={headlines} />
+            </ErrorBoundary>
+          </Suspense>
+        </div>
 
-//           if (cancelled) return;
-
-//           setError(errorMessage);
-//           setNews([]);
-//           setHeadlines([]);
-//           setLoading(false);
-//         }
-//      })();
-
-//     return () => {
-//       cancelled = true;
-//       controller.abort();
-//     };
-//   }, [searchForFetch]);
-
-//   return (
-//     <div className="max-w-6xl mt-3 mx-auto">
-//       <h2 className="text-1xl font-bold text-gray-900 text-center">{currentSearch}</h2>
-
-//       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
-//         <div className="bg-gray-100 rounded-xl p-6 flex flex-col justify-center">
-//           <h3 className="text-base font-semibold text-black mb-4 text-center">Sentiment Overview</h3>
-//           <Suspense fallback={<div className="h-72 flex items-center justify-center animate-pulse bg-gray-100 rounded-xl" />}>
-//             <ErrorBoundary fallback={<div className="h-72 text-red-600 text-center">Could not load sentiment.</div>}>
-//               <SentimentIsland headlines={headlines} />
-//             </ErrorBoundary>
-//           </Suspense>
-//         </div>
-
-//         {/* --- News Table */}
-//         <div className="lg:col-span-1 p-4">
-//           {loading ? (
-//             <div>
-//               <div className="flex justify-center items-center gap-3 mb-2">
-//                 <button className="w-10 h-10 rounded-full border border-gray-400 bg-gray-200 opacity-40 cursor-not-allowed">&lsaquo;</button>
-//                 <button className="w-10 h-10 rounded-full border border-gray-400 bg-gray-200 opacity-40 cursor-not-allowed">&rsaquo;</button>
-//               </div>
-//               <div className="relative overflow-x-auto rounded-lg border border-gray-300 shadow-sm bg-white max-w-5xl mx-auto">
-//                 <table className="w-full border-collapse text-xs table-fixed">
-//                   <thead className="bg-gray-50">
-//                     <tr>
-//                       <th className="px-4 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-1/6">Source</th>
-//                       <th className="px-4 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-1/6">Date</th>
-//                       <th className="px-4 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-2/6">Title</th>
-//                     </tr>
-//                   </thead>
-//                   <tbody>
-//                     {[...Array(5)].map((_, i) => (
-//                       <tr key={i} className="border-t border-gray-200">
-//                         <td className="px-4 py-4 whitespace-nowrap"><div className="h-4 bg-gray-300 rounded w-16" /></td>
-//                         <td className="px-4 py-4 whitespace-nowrap"><div className="h-4 bg-gray-300 rounded w-20" /></td>
-//                         <td className="px-4 py-4 whitespace-nowrap"><div className="h-4 bg-gray-300 rounded w-40" /></td>
-//                       </tr>
-//                     ))}
-//                   </tbody>
-//                 </table>
-//               </div>
-//             </div>
-//           ) : error ? (
-//             <p className="text-red-600 text-center">Error: {error}</p>
-//           ) : news.length === 0 ? (
-//             <p className="text-gray-700 text-center">No news found for {currentSearch}.</p>
-//           ) : (
-//             <NewsTable news={news} rpp={5} />
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
+        {/* --- News Table */}
+        <div className="lg:col-span-1 p-4">
+          {loading ? (
+            <div>
+              <div className="flex justify-center items-center gap-3 mb-2">
+                <button className="w-10 h-10 rounded-full border border-gray-400 bg-gray-200 opacity-40 cursor-not-allowed">&lsaquo;</button>
+                <button className="w-10 h-10 rounded-full border border-gray-400 bg-gray-200 opacity-40 cursor-not-allowed">&rsaquo;</button>
+              </div>
+              <div className="relative overflow-x-auto rounded-lg border border-gray-300 shadow-sm bg-white max-w-5xl mx-auto">
+                <table className="w-full border-collapse text-xs table-fixed">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-1/6">Source</th>
+                      <th className="px-4 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-1/6">Date</th>
+                      <th className="px-4 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-2/6">Title</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...Array(5)].map((_, i) => (
+                      <tr key={i} className="border-t border-gray-200">
+                        <td className="px-4 py-4 whitespace-nowrap"><div className="h-4 bg-gray-300 rounded w-16" /></td>
+                        <td className="px-4 py-4 whitespace-nowrap"><div className="h-4 bg-gray-300 rounded w-20" /></td>
+                        <td className="px-4 py-4 whitespace-nowrap"><div className="h-4 bg-gray-300 rounded w-40" /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : error ? (
+            <p className="text-red-600 text-center">Error: {error}</p>
+          ) : news.length === 0 ? (
+            <p className="text-gray-700 text-center">No news found for {currentSearch}.</p>
+          ) : (
+            <NewsTable news={news} rpp={5} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
