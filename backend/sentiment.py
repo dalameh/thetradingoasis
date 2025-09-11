@@ -156,11 +156,12 @@ app = FastAPI(
 Analyze financial news headlines with **FinBERT**.
 
 ### Features
-- Returns sentiment predictions for all headlines (positive, neutral, negative)
-- Users can set `min_confidence` to filter which predictions count in the summary
-- Summary only counts high-confidence predictions
-- CRUD operations stored in Supabase
-- Secured via API keys
+- 📰 Returns sentiment predictions for all submitted headlines (positive / neutral / negative)
+- 🎯 Users can set `min_confidence` to control which predictions count in the summary
+- 📊 Summary only counts **high-confidence predictions**
+- 🔄 Full CRUD: create, retrieve, update, delete sentiment analyses
+- 🔑 Secured with API keys
+- 💾 Stored in Supabase
 """
 )
 
@@ -176,17 +177,22 @@ app.add_middleware(
 )
 
 # ------------------------
-# Pydantic models with doc annotations
+# Pydantic models
 # ------------------------
 class SentimentRequest(BaseModel):
     """
     Request body for POST and PUT endpoints.
     """
-    ticker: Optional[str] = Field(None, description="Stock ticker symbol (required for POST)")
-    headlines: List[str] = Field(..., description="List of news headlines to analyze")
+    ticker: Optional[str] = Field(None, description="Stock ticker symbol (required for POST)", example="AAPL")
+    headlines: List[str] = Field(..., description="List of news headlines to analyze",
+                                 example=[
+                                     "Apple stock jumps after record iPhone sales",
+                                     "Investors worry about Apple supply chain issues"
+                                 ])
     min_confidence: Optional[float] = Field(
         0.7,
-        description="Minimum score for a prediction to be considered high confidence. Defaults to 0.7"
+        description="Minimum score for a prediction to be considered high confidence. Defaults to 0.7",
+        example=0.7
     )
 
 class SentimentItem(BaseModel):
@@ -205,13 +211,13 @@ class SentimentSummary(BaseModel):
 
 class SentimentResponse(BaseModel):
     """Full response including predictions and summary."""
-    id: str = Field(..., description="Unique ID for this sentiment analysis record")
-    ticker: str = Field(..., description="Stock ticker symbol")
-    model_used: str = Field("finbert-tone", description="Model used for prediction")
-    headlines: List[str] = Field(..., description="Input headlines analyzed")
-    items: List[SentimentItem] = Field(..., description="All sentiment predictions")
-    summary: SentimentSummary = Field(..., description="Summary of high-confidence predictions")
-    min_confidence: float = Field(..., description="Minimum confidence threshold used for this analysis")
+    id: str
+    ticker: str
+    model_used: str = "finbert-tone"
+    headlines: List[str]
+    items: List[SentimentItem]
+    summary: SentimentSummary
+    min_confidence: float
 
 # ------------------------
 # Helper function: analyze headlines
@@ -226,11 +232,9 @@ def analyze_headlines(headlines: List[str], min_confidence: float = 0.7):
 
     items = []
     for headline, pred_list in zip(headlines, preds):
-        # Ensure pred_list is a list
         if not isinstance(pred_list, list):
             pred_list = [pred_list]
 
-        # Store each prediction individually
         for p in pred_list:
             score = float(p["score"])
             high_confidence = score >= min_confidence
@@ -243,7 +247,6 @@ def analyze_headlines(headlines: List[str], min_confidence: float = 0.7):
                 "model_used": "finbert-tone"
             })
 
-    # Summary only counts high-confidence items
     counts = {"positive": 0, "neutral": 0, "negative": 0}
     for item in items:
         if item["high_confidence"]:
@@ -256,23 +259,60 @@ def analyze_headlines(headlines: List[str], min_confidence: float = 0.7):
     return items, summary
 
 # ------------------------
-# CRUD Endpoints
+# CRUD Endpoints with Examples in Swagger
 # ------------------------
 @app.post(
     "/api/sentiment",
     response_model=SentimentResponse,
     summary="Analyze headlines and store results",
-    response_description="Sentiment analysis results with summary"
+    responses={
+        200: {
+            "description": "Sentiment analysis saved successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "generated-uuid",
+                        "ticker": "AAPL",
+                        "model_used": "finbert-tone",
+                        "headlines": [
+                            "Apple stock jumps after record iPhone sales",
+                            "Investors worry about Apple supply chain issues"
+                        ],
+                        "items": [
+                            {
+                                "headline": "Apple stock jumps after record iPhone sales",
+                                "label": "positive",
+                                "score": 0.93,
+                                "high_confidence": True,
+                                "model_used": "finbert-tone"
+                            },
+                            {
+                                "headline": "Investors worry about Apple supply chain issues",
+                                "label": "neutral",
+                                "score": 0.62,
+                                "high_confidence": False,
+                                "model_used": "finbert-tone"
+                            }
+                        ],
+                        "summary": {
+                            "counts": {"positive": 1, "neutral": 0, "negative": 0},
+                            "percentages": {"positive": 100.0, "neutral": 0.0, "negative": 0.0},
+                            "total": 1
+                        },
+                        "min_confidence": 0.7
+                    }
+                }
+            }
+        }
+    }
 )
 def create_sentiment(body: SentimentRequest, x_api_key: str = Header(...)):
-    """Analyze new headlines and save to Supabase."""
     check_api_key(x_api_key)
     if not body.headlines or not body.ticker:
         raise HTTPException(status_code=400, detail="headlines and ticker are required")
 
     items, summary = analyze_headlines(body.headlines, body.min_confidence)
 
-    # Delete existing sentiment for this ticker (optional)
     supabase.table("sentiment_results").delete().eq("ticker", body.ticker).execute()
 
     new_id = str(uuid.uuid4())
@@ -292,10 +332,29 @@ def create_sentiment(body: SentimentRequest, x_api_key: str = Header(...)):
     "/api/sentiment/{id}",
     response_model=SentimentResponse,
     summary="Fetch sentiment by ID",
-    response_description="Saved sentiment record"
+    responses={
+        200: {
+            "description": "Retrieved sentiment record",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "generated-uuid",
+                        "ticker": "AAPL",
+                        "model_used": "finbert-tone",
+                        "headlines": [
+                            "Apple stock jumps after record iPhone sales",
+                            "Investors worry about Apple supply chain issues"
+                        ],
+                        "items": [...],
+                        "summary": {...},
+                        "min_confidence": 0.7
+                    }
+                }
+            }
+        }
+    }
 )
 def get_sentiment(id: str, x_api_key: str = Header(...)):
-    """Fetch a saved sentiment record by its ID."""
     check_api_key(x_api_key)
     existing = supabase.table("sentiment_results").select("*").eq("id", id).execute()
     if not existing.data:
@@ -306,10 +365,26 @@ def get_sentiment(id: str, x_api_key: str = Header(...)):
     "/api/sentiment/{id}",
     response_model=SentimentResponse,
     summary="Update headlines and/or min_confidence",
-    response_description="Updated sentiment record"
+    responses={
+        200: {
+            "description": "Updated sentiment record",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "new-generated-uuid",
+                        "ticker": "AAPL",
+                        "model_used": "finbert-tone",
+                        "headlines": ["Updated headline 1", "Updated headline 2"],
+                        "items": [...],
+                        "summary": {...},
+                        "min_confidence": 0.8
+                    }
+                }
+            }
+        }
+    }
 )
 def update_sentiment(id: str, body: SentimentRequest, x_api_key: str = Header(...)):
-    """Update headlines or min_confidence and recalculate predictions."""
     check_api_key(x_api_key)
     if not body.headlines:
         raise HTTPException(status_code=400, detail="headlines are required")
@@ -321,7 +396,6 @@ def update_sentiment(id: str, body: SentimentRequest, x_api_key: str = Header(..
 
     items, summary = analyze_headlines(body.headlines, body.min_confidence)
 
-    # Replace existing record with new analysis
     supabase.table("sentiment_results").delete().eq("id", id).execute()
     new_id = str(uuid.uuid4())
     updated = {
@@ -339,95 +413,24 @@ def update_sentiment(id: str, body: SentimentRequest, x_api_key: str = Header(..
 @app.delete(
     "/api/sentiment/{id}",
     summary="Delete sentiment by ID",
-    response_description="Deletion confirmation"
+    responses={
+        200: {
+            "description": "Deleted sentiment record",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Deleted successfully"}
+                }
+            }
+        }
+    }
 )
 def delete_sentiment(id: str, x_api_key: str = Header(...)):
-    """Delete a sentiment record by ID."""
     check_api_key(x_api_key)
     existing = supabase.table("sentiment_results").select("*").eq("id", id).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Sentiment not found")
     supabase.table("sentiment_results").delete().eq("id", id).execute()
     return {"detail": "Deleted successfully"}
-
-# ------------------------
-# Example Input/Output for Documentation
-# ------------------------
-
-"""
-POST /api/sentiment
--------------------
-Request Body:
-{
-  "ticker": "AAPL",
-  "headlines": [
-    "Apple stock jumps after record iPhone sales",
-    "Investors worry about Apple supply chain issues"
-  ],
-  "min_confidence": 0.7
-}
-
-Response Body:
-{
-  "id": "generated-uuid",
-  "ticker": "AAPL",
-  "model_used": "finbert-tone",
-  "headlines": [...],
-  "items": [
-    {"headline": "...", "label": "positive", "score": 0.93, "high_confidence": true, "model_used": "finbert-tone"},
-    {"headline": "...", "label": "neutral", "score": 0.62, "high_confidence": false, "model_used": "finbert-tone"}
-  ],
-  "summary": {"counts": {"positive":1,"neutral":0,"negative":0}, "percentages":{"positive":100.0,"neutral":0.0,"negative":0.0}, "total":1},
-  "min_confidence": 0.7
-}
-
-GET /api/sentiment/{id}
------------------------
-Path Parameter:
-id = "generated-uuid"
-
-Response Body:
-{
-  "id": "generated-uuid",
-  "ticker": "AAPL",
-  "model_used": "finbert-tone",
-  "headlines": [...],
-  "items": [...],
-  "summary": {...},
-  "min_confidence": 0.7
-}
-
-PUT /api/sentiment/{id}
------------------------
-Path Parameter:
-id = "generated-uuid"
-Request Body:
-{
-  "headlines": ["Updated headline 1", "Updated headline 2"],
-  "min_confidence": 0.8
-}
-
-Response Body:
-{
-  "id": "new-generated-uuid",
-  "ticker": "AAPL",
-  "model_used": "finbert-tone",
-  "headlines": ["Updated headline 1", "Updated headline 2"],
-  "items": [...],
-  "summary": {...},
-  "min_confidence": 0.8
-}
-
-DELETE /api/sentiment/{id}
---------------------------
-Path Parameter:
-id = "generated-uuid"
-
-Response Body:
-{
-  "detail": "Deleted successfully"
-}
-"""
 
 
 
