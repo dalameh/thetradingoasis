@@ -210,10 +210,10 @@ def analyze_headlines(headlines: List[str], min_confidence: float = 0.7):
     pred_list = preds[0]
     if not isinstance(pred_list, list):
         pred_list = [pred_list]
-    for p in pred_list:
+    for i, p in enumerate(pred_list):
         score = float(p["score"])
         items.append({
-            "headline": p["headline"],
+            "headline": headlines[i],
             "label": p["label"].lower(),
             "score": score,
             "high_confidence": score >= min_confidence,

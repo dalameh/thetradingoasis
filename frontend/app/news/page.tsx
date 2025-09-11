@@ -1,6 +1,6 @@
 import PageHeader from "@/components/PageHeader";
 import SearchBar from "@/components/NewsClient/SearchBar";
-import NewsContent from "@/components/NewsClient/NewsContent";
+import NewsContentMain from "@/components/NewsClient/NewsContent";
 
 export default function NewsPage() {
   return (
@@ -8,7 +8,7 @@ export default function NewsPage() {
       <PageHeader title="Market News" />
       <div className="min-h-screen p-8 pb-20">
         <SearchBar />
-        <NewsContent />
+        <NewsContentMain />
       </div>
     </main>
   );

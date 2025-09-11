@@ -54,7 +54,7 @@ interface NewsItem {
   url: string;
 }
 
-export default function NewsContent() {
+function NewsContent() {
   const searchParams = useSearchParams();
   const tickerParam = searchParams.get("search");
 
@@ -189,5 +189,13 @@ export default function NewsContent() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NewsContentMain() {
+  return (
+    <Suspense fallback={<div className="text-center">Loading news & sentiment...</div>}>
+      <NewsContent />
+    </Suspense>
   );
 }
