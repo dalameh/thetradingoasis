@@ -93,21 +93,33 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 from transformers import pipeline
-import numpy as np
 import uuid
 from supabase import create_client, Client
+import os
 
 # ------------------------
 # Supabase client
 # ------------------------
-SUPABASE_URL = NEXT_PUBLIC_SUPABASE_URL
-SUPABASE_KEY = SUPABASE_SERVICE_ROLE_KEY
+
+SUPABASE_URL = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("Supabase environment variables not set")
+
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ------------------------
 # API Key validation
 # ------------------------
-VALID_API_KEYS = {"my-secret-key"}  # Replace with your key
+VALID_API_KEYS = {
+    "a4c9f2e1-5b7d-4a8f-9e3c-1d2b6f7a8c9e",
+    "7f2d1c4b-8e6a-4d3f-9b1c-2a5e7d6f8b9c",
+    "d8b3a2f1-6c5e-4b7d-9a3f-1e2c4d6b8f9a",
+    "c1f7e8d2-4b6a-4c9e-8b2d-3a1f5e7c9b6d",
+    "9a6c3f1b-2e8d-4a7f-9c5b-1d2e7f6a8b3c"
+}
+
 def check_api_key(x_api_key: str = Header(...)):
     if x_api_key not in VALID_API_KEYS:
         raise HTTPException(status_code=401, detail="Invalid API Key")
@@ -139,7 +151,7 @@ to extract **positive, neutral, or negative sentiment**.
 # ------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://thetradingoasis.vercel.app/"],  # adjust in production
+    allow_origins=["*"],  # adjust in production
     allow_credentials=True,
     allow_methods=["GET","POST","PUT","DELETE"],
     allow_headers=["*"],
