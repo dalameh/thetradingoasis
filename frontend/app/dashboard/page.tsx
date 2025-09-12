@@ -8,6 +8,7 @@ import { AVAILABLE_WIDGETS } from "@/components/dashboard/availableWidget";
 import { toast } from "sonner";
 import PageHeader from '@/components/PageHeader'
 import { Edit, Check } from "lucide-react";
+import {supabase} from "@/lib/supabaseFrontendClient"
 
 type Section = "stats" | "main";
 
@@ -16,9 +17,43 @@ export default function Dashboard() {
   const [managerOpenFor, setManagerOpenFor] = useState<Section | null>(null);
   const [statsWidgets, setStatsWidgets] = useState<string[]>(["net-pl", "win-rate", "volume-traded", "total-trades"]);
   const [mainWidgets, setMainWidgets] = useState<string[]>(["eps-dates", "market-summary", "quick-actions",  "performance-chart"]);
-
+  const [username, setUsername] = useState<string>("");
+  const [isGuest, setIsGuest] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [mounted, setMounted] = useState(false); // 🔹 Track client mount
-  useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => { setMounted(true); }, []);   
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+    // Check Supabase session
+      const { data } = await supabase.auth.getSession();
+
+      if (!mounted) return;
+
+      if (data.session?.user) {
+        // Authenticated user
+        const user = data.session.user;
+        setUsername(user.user_metadata?.username ?? "");
+        setIsGuest(false);
+      } else {
+        // Guest fallback
+        const guest = sessionStorage.getItem("authenticated") === "guest";
+        if (guest) {
+          setUsername(sessionStorage.getItem("guest_username") ?? "");
+          setIsGuest(true);
+        } else {
+          // Not signed in at all
+          setUsername("");
+          setIsGuest(false);
+        }
+      }
+
+      setLoading(false);
+    };
+
+      fetchUsername();
+  }, [mounted]);
 
   const findWidgetMeta = (id: string) => AVAILABLE_WIDGETS.find(w => w.id === id);
   const MAX_MAIN_ROWS = 3;
@@ -220,7 +255,8 @@ export default function Dashboard() {
       <PageHeader title="Your Dashboard"/>
       <div className="min-h-screen bg-gray-50 p-4">
         {/* Header */}
-        <div className="flex items-center justify-end pb-3">
+        <div className="flex items-center pl-2 justify-between pb-3">
+          <span className = "text-sm text-black"> {username ? `Welcome ${username}!` : `Welcome!`}</span>
           <button
             onClick={() => setIsEditing(prev => !prev)}
             className="flex items-center gap-2 p-2 rounded-lg border border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-100"

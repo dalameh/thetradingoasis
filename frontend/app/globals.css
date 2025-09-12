@@ -239,3 +239,19 @@ html, body, #__next {
 .recharts-wrapper {
   overflow: visible !important;
 }
+
+/* Custom sidebar scroll */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: #38bdf8;
+  border-radius: 9999px;
+}
+.sidebar {
+  scrollbar-width: thin; 
+  scrollbar-color: #38bdf8 transparent;
+}

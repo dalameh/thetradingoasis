@@ -85,7 +85,7 @@ export default function SetupForm({ initialData, onCancel, onSave }: SetupFormPr
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-8"
       onClick={onCancel}
     >
       <div

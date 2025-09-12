@@ -284,7 +284,7 @@ export default function WatchlistPage() {
 
         {/* Add ticker modal */}
         {showAdd && (
-          <form onSubmit={handleAdd} className="fixed inset-0 flex items-center justify-center z-50">
+          <form onSubmit={handleAdd} className="fixed inset-0 flex items-center justify-center z-50 p-8">
             <div className="absolute inset-0 bg-black/40" onClick={()=>setShowAdd(false)}/>
             <div className="relative bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
               <h3 className="text-lg text-black font-semibold mb-2">Add Ticker</h3>

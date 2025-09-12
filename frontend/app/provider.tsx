@@ -46,7 +46,7 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
           onClick={() => setMobileMenuOpen(false)} // clicking overlay closes menu
         >
           <div
-            className="absolute left-0 top-0 h-full w-48 bg-white shadow-lg"
+            className=""
             onClick={(e) => {
               e.stopPropagation(); // prevent closing when clicking inner container
               setMobileMenuOpen(false); // **close menu on any click inside**
@@ -60,10 +60,10 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
       {/* Main content */}
       <main
         className={`bg-gray-100 min-h-screen transition-all duration-300
-                    ${showSidebar ? (collapsed ? "md:pl-[5rem]" : "md:pl-[12rem]") : ""}`}
+                    ${showSidebar ? (collapsed ? "md:pl-[5rem]" : "md:pl-[11rem]") : ""}`}
       >
         {children}
       </main>
     </>
-  );
+  );5
 }
