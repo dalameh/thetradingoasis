@@ -132,8 +132,8 @@ export default function WatchlistPage() {
       <div className="min-h-screen bg-gray-50 p-5">
         <div className="max-w-7xl mx-auto">
           <header className="flex items-center justify-between mb-6">
-            <div>
-              <p className="text-sm text-slate-500">Personalized market watchlist — live prices </p>
+            <div className = "sm:max-w-3x1">
+              <p className="text-sm text-slate-500">Personalized live market watchlist </p>
             </div>
             <div className="flex items-center gap-3">
               {/* <button
@@ -145,7 +145,7 @@ export default function WatchlistPage() {
           </button> */}
               <button
                 onClick={() => setShowAdd(true)}
-                  className="flex items-center gap-2 p-2 rounded-lg border border-gray-300 text-gray-600 hover:text-gray-900"
+                  className="flex items-center gap-2 p-2 rounded-lg border border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               >
               <Plus className="w-5 h-5"/>
               <span className = "text-sm">{" "} Add to Watchlist</span>              
@@ -227,22 +227,22 @@ export default function WatchlistPage() {
                 <div className="flex justify-center mb-2">
                   <Pagination totalPages={Math.ceil(sorted.length/itemsPerPage)} page={currentPage} setPage={setCurrentPage} maxButtons={5} appPage="Watchlist"/>
                 </div>
-
-                <table className="min-w-full table-fixed divide-y divide-slate-200 text-sm">
-                  <thead className="bg-slate-50">
+              <div className="overflow-y-hidden overflow-x-auto flex-1 rounded-xl border border-gray-200 shadow-sm">
+                <table className="min-w-full table-fixed divide-y divide-gray-200 h-full">
+                  <thead className="bg-gray-300/40 sticky top-0 z-10">
                     <tr>
-                      <th className="px-2 py-3 text-left font-semibold text-slate-500 uppercase tracking-wider w-30">Ticker</th>
-                      <th className="px-2 py-3 text-left font-semibold text-slate-500 uppercase tracking-wider w-25">Price</th>
-                      <th className="px-2 py-3 text-left font-semibold text-slate-500 uppercase tracking-wider w-25">% Chg</th>
-                      <th className="px-2 py-3 text-left font-semibold text-slate-500 uppercase tracking-wider w-25">Spark</th>
-                      <th className="px-2 py-3 text-left font-semibold text-slate-500 uppercase tracking-wider w-20">Actions</th>
+                      <th className="px-2 py-4 text-left font-semibold text-xs text-gray-700 uppercase tracking-wider w-30">Ticker</th>
+                      <th className="px-2 py-4 text-left font-semibold text-xs text-gray-700 uppercase tracking-wider w-25">Price</th>
+                      <th className="px-2 py-4 text-left font-semibold text-xs text-gray-700 uppercase tracking-wider w-25">% Chg</th>
+                      <th className="px-2 py-4 text-left font-semibold text-xs text-gray-700 uppercase tracking-wider w-25">Spark</th>
+                      <th className="px-2 py-4 text-left font-semibold text-xs text-gray-700 uppercase tracking-wider w-20">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-slate-100">
                     {paginated.map(row => (
-                      <tr key={row.ticker} className="hover:bg-slate-50 transition-colors">
+                      <tr key={row.ticker} className="hover:bg-blue-50 transition-colors">
                         <td className="px-2 py-2 max-w-[140px]">
-                          <div className="font-medium truncate">{row.ticker}</div>
+                          <div className="font-medium text-sm truncate">{row.ticker}</div>
                           <div className="text-xs text-slate-500 break-words">{row.name}</div>
                         </td>
                         <td className="px-2 py-2 text-left text-sm text-black">${row.price.toFixed(2)}</td>
@@ -277,6 +277,7 @@ export default function WatchlistPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </section>
           </section>

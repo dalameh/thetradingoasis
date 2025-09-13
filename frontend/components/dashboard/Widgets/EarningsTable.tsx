@@ -123,10 +123,10 @@ export default function EarningsTable({ rpp }: EarningsTableProps) {
             </colgroup>
             <thead className="bg-gray-300/40 sticky top-0 z-10">
                <tr>
-                <th className="px-2 py-7 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Company</th>
-                <th className="px-2 py-7 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
-                <th className="px-2 py-7 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">EPS Estimate</th>
-                <th className="px-2 py-7 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">EPS Realized</th>
+                <th className="px-2 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Company</th>
+                <th className="px-2 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
+                <th className="px-2 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">EPS Estimate</th>
+                <th className="px-2 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">EPS Realized</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -153,10 +153,10 @@ export default function EarningsTable({ rpp }: EarningsTableProps) {
 
             <thead className="bg-gray-300/40 sticky top-0 z-10">
               <tr>
-                <th className="px-2 py-7 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Company</th>
-                <th className="px-2 py-7 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
-                <th className="px-2 py-7 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">EPS Estimate</th>
-                <th className="px-2 py-7 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">EPS Realized</th>
+                <th className="px-2 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Company</th>
+                <th className="px-2 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
+                <th className="px-2 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">EPS Estimate</th>
+                <th className="px-2 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">EPS Realized</th>
               </tr>
             </thead>
 

@@ -56,7 +56,7 @@ export default function OasisLandingPage() {
   const handleSignIn = () => router.push("/signin");
 
   return (
-    <main className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden  bg-gradient-to-b from-[#0a1b2d] to-[#10293f] text-white px-6">
+    <main className="relative w-full h-[100svh] flex flex-col items-center justify-center overflow-hidden  bg-gradient-to-b from-[#0a1b2d] to-[#10293f] text-white px-6">
       
       {/* Background stars */}
       <div className="absolute inset-0 pointer-events-none">

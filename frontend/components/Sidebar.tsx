@@ -120,7 +120,7 @@ export default function Sidebar({
         aria-label="Toggle sidebar"
       >
         <div
-          className="overflow-hidden transition-all duration-500 ease-in-out mt-5"
+          className="overflow-hidden transition-all duration-500 ease-in-out mt-2"
           style={{ width: collapsed ? 50 : 110 }}
         >
           <Image
@@ -136,7 +136,7 @@ export default function Sidebar({
       {/* Header */}
       <div className="relative w-full flex flex-col items-center flex-none">
         {/* Header */}
-        <div className="relative w-full flex flex-col items-center h-20">
+        <div className="relative w-full flex flex-col items-center h-15">
           {/* Expanded title */}
           <div
             className={`
@@ -152,7 +152,7 @@ export default function Sidebar({
           {/* Collapsed title */}
           <div
             className={`
-              absolute top-0 left-0 w-full flex flex-col items-center mt-3
+              absolute top-0 left-0 w-full flex flex-col items-center mt-1
               transition-all duration-500 ease-in-out transform origin-top
               ${collapsed ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"}
             `}
