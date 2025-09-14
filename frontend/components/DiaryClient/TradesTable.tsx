@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
+import {TradeFormData} from './TradeForm';
 
 type TradesTableProps = {
-  trades: any[];
+  trades: TradeFormData[];
 };
 
 export default function TradesTable({ trades }: TradesTableProps) {
