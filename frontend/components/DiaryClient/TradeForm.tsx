@@ -34,7 +34,7 @@ type PnLType = "%" | "$";
 const hd = new Holidays("US");
 const holidayCache: Record<number, Set<string>> = {};
 
-interface TradeFormData {
+export interface TradeFormData {
   _id: number;
   symbol: string;
   type: TradeType;
@@ -74,7 +74,7 @@ interface Setup {
 
 type TradeFormProps = {
     handleReturn: () => void; 
-    onAddTrade: (trade: any) => void;
+    onAddTrade: (trade: TradeFormData) => void;
 };
 
 export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) {
@@ -160,8 +160,6 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
     Stock: { label: "Shares Sold", key: "sharesSold" },
     Options: { label: "Contracts Sold", key: "contractsSold" }
   };
-
-
 
   // fetch exisiting setups off the bat
    useEffect(() => {
@@ -491,9 +489,10 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
       const updated = { ...prev };
 
       // ENTRY PRICE
-      if (formData.type === "Stock" && typicalEntryPrice && !entryPriceEdited) {
+      if (formData.type === "Stock" && typicalEntryPrice && !entryPriceEdited && !formData.entryPrice) {
         updated.entryPrice = typicalEntryPrice;
       }
+
       if (formData.type === "Options" && typicalEntryPrice && !strikePriceEdited) {
         updated.strikePrice = Math.round(typicalEntryPrice);
       }
@@ -692,7 +691,7 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
 
                 {/* Start of Second row*/}
                 <div
-                  className={`grid gap-6 mt-5
+                  className={`grid gap-4 mt-5
                     ${!formData.type 
                       ? "grid-cols-1 md:grid-cols-2 justify-items-center" // symbol + type
                       : "grid-cols-1 md:grid-cols-4 justify-items-center"}
@@ -897,7 +896,7 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
                 </div>
 
                 {/* Start of Fifth row */}
-                <div className={`grid gap-6 mt-5
+                <div className={`grid gap-4 mt-5
                     ${!formData.type 
                       ? "grid-cols-1 md:grid-cols-2 justify-items-center" // symbol + type
                       : "grid-cols-1 md:grid-cols-4 justify-items-center"}

@@ -461,8 +461,8 @@ export default function Chart({
 
             {/* Loading overlay on top of chart */}
             {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
-                <ChartLine className="w-25 h-25 text-gray-300 animate-pulse" />
+              <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
+                <ChartLine className="w-24 h-24 text-gray-300 animate-pulse" />
               </div>
             )}
           </div>

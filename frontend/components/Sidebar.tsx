@@ -101,9 +101,9 @@ export default function Sidebar({
   return (
     <aside
       className="
-        fixed top-0 left-0 h-screen
+        fixed top-0 left-0 h-[100svh]
         bg-gradient-to-tr from-gray-800 via-slate-900 to-cyan-900
-        rounded-r-2xl
+        rounded-r-3xl
         shadow-[8px_8px_20px_rgba(0,0,0,.75)]
         z-50 flex flex-col
         overflow-hidden transition-[width] duration-300 ease-in-out

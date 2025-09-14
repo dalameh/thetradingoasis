@@ -4,9 +4,10 @@ import { useState, Suspense, useEffect } from "react";
 import TradeForm from "./TradeForm";
 import TradesTable from "./TradesTable";
 import { useSearchParams } from 'next/navigation';
+import {TradeFormData} from './TradeForm';
 
 export default function TradeDiaryClient() {
-  const [trades, setTrades] = useState<any[]>([]);
+  const [trades, setTrades] = useState<TradeFormData[]>([]);
   const [isAdding, setIsAdding] = useState(false);
 
     // const searchParams = useSearchParams();
@@ -27,8 +28,7 @@ export default function TradeDiaryClient() {
     // setTrades(fetchedTrades);
   }, []);
 
-
-  const handleAddTrade = (trade: any) => {
+  const handleAddTrade = (trade: TradeFormData) => {
     setTrades(prev => [...prev, trade]);
     setIsAdding(false);
   };
