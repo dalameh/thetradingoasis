@@ -8,10 +8,10 @@ import Chart from '@/components/ChartClient/Chart';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Time } from "lightweight-charts";
-import Holidays from "date-holidays";
 import { getTicker } from '@/components/ChartClient/Chart'
 import { supabase } from '@/lib/supabaseFrontendClient';
 import { ChartLine } from "lucide-react";
+import {isTradingDay} from '@/store/WatchlistStore'
 
 const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), { ssr: false });
 
@@ -26,16 +26,13 @@ interface OptionType {
   value: TradeType;
   label: string;
 }
+
 type DirectionType = "Buy Call" | "Buy Put" | "Sell Call" | "Sell Put" | "Long" | "Short" | "";
 type OutcomeType = "win" | "loss" | "breakeven" | "";
 type StopLossType = "%" | "$";
 type PnLType = "%" | "$";
 
-const hd = new Holidays("US");
-const holidayCache: Record<number, Set<string>> = {};
-
 export interface TradeFormData {
-  _id: number;
   symbol: string;
   type: TradeType;
   direction: DirectionType;
@@ -63,7 +60,39 @@ export interface TradeFormData {
   setup: string;
   setupRules: string[],
   notes: string;
-  outcome: OutcomeType;
+}
+
+export interface TradeInsert {
+  id: number
+  user_id: string;  // required
+  symbol: string;
+  type: TradeType;
+  direction: DirectionType;
+  contract_exp_date?: string | null;
+  strike_price?: number;
+  dte?: number;
+  entry_date: string | null;
+  entry_time?: string | null;
+  entry_price?: number;
+  entry_premium?: number;
+  shares?: number;
+  contracts?: number;
+  still_active?: boolean;
+  exit_date?: string | null;
+  exit_time?: string | null;
+  exit_price?: number;
+  exit_premium?: number;
+  shares_sold?: number;
+  contracts_sold?: number;
+  total_cost?: number;
+  stop_loss?: number;
+  stop_loss_type?: string;
+  pnl?: number;
+  pnl_type?: PnLType;
+  setup?: string;
+  setup_rules?: string[];
+  notes?: string;
+  outcome?: OutcomeType;
 }
 
 interface Setup {
@@ -72,47 +101,98 @@ interface Setup {
   rules: string[];
 }
 
+// Format date for Supabase (YYYY-MM-DD)
+export function formatDateEST(date?: Date | null): string | null {
+  if (!date) return null;
+  const d = new Date(date);
+  // Convert to EST string and take YYYY-MM-DD
+  const estDate = new Date(d.toLocaleString("en-US", { timeZone: "America/New_York" }));
+  return estDate.toISOString().slice(0, 10); // "YYYY-MM-DD"
+}
+
+// Format time for Supabase (hh:mm AM/PM)
+export function formatTimeEST(time?: Date | null): string | null {
+  if (!time) return null;
+  const t = new Date(time);
+  return t.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "America/New_York",
+  }); // "10:45 AM" or "03:30 PM"
+}
+
 type TradeFormProps = {
     handleReturn: () => void; 
-    onAddTrade: (trade: TradeFormData) => void;
+    onAddTrade: (trade: TradeInsert) => void;
+    trade?: TradeInsert | null;
 };
 
-export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) {
+function parseDateEST(dateString?: string | null): Date | null {
+  if (!dateString) return null;
+
+  // Create a Date in the "America/New_York" timezone at midnight
+  const estDateStr = new Date(dateString + "T00:00:00").toLocaleString("en-US", {
+    timeZone: "America/New_York",
+  });
+
+  // Convert that back to a Date object
+  return new Date(estDateStr);
+}
+
+function parseTimeStringToDate(timeString?: string | null): Date | null {
+  if (!timeString) return null;
+
+  const match = timeString.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
+  if (!match) return null;
+
+  const [_, hStr, mStr, period] = match;
+  let hours = parseInt(hStr);
+  const minutes = parseInt(mStr);
+
+  if (period.toUpperCase() === "PM" && hours !== 12) hours += 12;
+  if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
+
+  const dt = new Date();
+  dt.setHours(hours, minutes, 0, 0);
+  return dt;
+}
+
+export default function TradeForm({ onAddTrade, handleReturn, trade}: TradeFormProps) {
   // initial "Add Trade" form
   const initialForm: TradeFormData = {
-    _id: 0,
-    symbol: "",
-    type: "",
-    direction: "",
-    contractExpDate: null,
-    strikePrice: undefined,
-    dte: undefined,
-    entryDate: clampEntryDate(new Date()),
-    entryTime: null,
-    entryPrice: undefined,
-    entryPremium: undefined,
-    shares: undefined,
-    contracts: undefined,
-    stillActive: false,
-    exitDate: null,
-    exitTime: null,
-    exitPrice: undefined,
-    exitPremium: undefined,
-    sharesSold: undefined,
-    contractsSold: undefined,
-    totalCost: undefined,
-    stopLoss: undefined,
-    stopLossType: "%",
-    pnl: undefined,
-    pnlType: "$",
-    setup: "",
-    setupRules: [],
-    notes: "",
-    outcome: "",
+    symbol: trade?.symbol || "",
+    type: trade?.type || "",
+    direction: trade?.direction || "",
+    contractExpDate: trade?.contract_exp_date ? parseDateEST(trade.contract_exp_date) : null,
+    strikePrice: trade?.strike_price,
+    dte: trade?.dte,
+    entryDate: trade?.entry_date ? parseDateEST(trade.entry_date) : clampEntryDate(new Date()),
+    entryTime: parseTimeStringToDate(trade?.entry_time) || null,
+    entryPrice: trade?.entry_price,
+    entryPremium: trade?.entry_premium,
+    shares: trade?.shares,
+    contracts: trade?.contracts,
+    stillActive: trade?.still_active || false,
+    exitDate: trade?.exit_date ? parseDateEST(trade.exit_date) : null,
+    exitTime: parseTimeStringToDate(trade?.exit_time) || null,
+    exitPrice: trade?.exit_price,
+    exitPremium: trade?.exit_premium,
+    sharesSold: trade?.shares_sold,
+    contractsSold: trade?.contracts_sold,
+    totalCost: trade?.total_cost,
+    stopLoss: trade?.stop_loss,
+    stopLossType: trade?.stop_loss_type || "%",
+    pnl: trade?.pnl || undefined,
+    pnlType: trade?.pnl_type || "$",
+    setup: trade?.setup || "",
+    setupRules: trade?.setup_rules || [],
+    notes: trade?.notes || "",
   };
 
+
   // vars
-//   const [isAdding, setIsAdding] = useState(false);
+  // const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState<TradeFormData>(initialForm);
   const [setups, setSetups] = useState<Setup[]>([]);
   const [selectedSetupId, setSelectedSetupId] = useState<string | null>(null);
@@ -123,16 +203,6 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
   const [entryPriceEdited, setEntryPriceEdited] = useState(false);
   const [exitPriceEdited, setExitPriceEdited] = useState(false);
   const [strikePriceEdited, setStrikePriceEdited] = useState(false);
-  const [symbol, setSymbol] = useState("");
-
-//   useEffect(() => {
-//     if (!tickerParam) return;
-    
-//     console.log("here");
-//     setSymbol(tickerParam)
-//     formData.symbol = tickerParam;
-    
-//   }, [formData, tickerParam]);
 
   // Maintainable Entry and Exit Rows for Both Stock and Option Types
   const entryFieldMap: Record<
@@ -197,43 +267,75 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
     fetchSetups();
   }, []);
 
-  // whenever selectedSetupId changes, reset the rule checkboxes
-  useEffect(() => {
-    if (selectedSetupId) {
-      const setup = setups.find((s) => s.id === selectedSetupId);
-      if (setup) {
-        setSelectedRules(setup.rules.map(() => false));
-      }
-    }
-  }, [selectedSetupId, setups]);
+   useEffect(() => {
+    if (!trade || setups.length === 0) return;
+
+    // Find the setup object that matches the trade's setup name
+    const currentSetup = setups.find(s => s.name === trade.setup);
+
+    if (!currentSetup) return;
+
+    // Map the rules to booleans based on what the trade has selected
+    const safeCheckedRules = currentSetup.rules.map(rule =>
+      trade.setup_rules?.includes(rule) ?? false
+    );
+
+    // Update selected setup and rules state
+    setSelectedSetupId(currentSetup.id || null); 
+    setSelectedRules(safeCheckedRules);
+
+  }, [trade, setups]);
+
+
+
 
   // handle const functions
-  const handleSymbol = (symbol : string) => {
-    setSymbol(symbol);
-    formData.symbol = symbol;
-  }
+  const handleSymbol = (symbol: string) => {
+    setFormData(prev => ({
+      ...prev,
+      symbol: symbol,
+    }));
+  };
 
   // --- LOCK ENTRY PRICE WHEN USER EDITS ---
   const handleEntryPriceChange = (value: number | undefined) => {
-    setEntryPriceEdited(value !== undefined && value !== 0 && value != typicalEntryPrice); // optional: consider 0 as not edited
+    // Mark as edited if user touched it (even if they clear to 0/undefined)
+    setEntryPriceEdited(true);
+
     setFormData(prev => ({
       ...prev,
       entryPrice: value,
     }));
   };
 
+  // Reset entryPriceEdited when entry date/time changes
+  useEffect(() => {
+    if (!formData.type || !typicalEntryPrice) return;
+    if (formData.type == "Stock") {
+      setEntryPriceEdited(formData.entryPrice != undefined && formData.entryPrice != 0 && (formData.entryPrice !== typicalEntryPrice));
+    } else {
+      setStrikePriceEdited(formData.strikePrice != undefined && formData.strikePrice != 0 && (formData.strikePrice !== Math.round(typicalEntryPrice)));
+    }
+  }, [formData.entryDate, formData.entryTime]);
+
 
   const handleExitPriceChange = (value: number | undefined) => {
-    setExitPriceEdited(value !== undefined && value !== 0 && value != typicalExitPrice);
+    setExitPriceEdited(true);
     setFormData(prev => ({
       ...prev,
       exitPrice: value,
     }));
   };
 
+  useEffect(() => {
+    if (formData.type !== "Stock" || !typicalExitPrice) return;
+    setExitPriceEdited(formData.exitPrice != undefined && formData.exitPrice != 0 && (formData.exitPrice !== typicalExitPrice));
+  }, [formData.exitDate, formData.exitTime]);
+
+
   // --- LOCK STRIKE PRICE WHEN USER EDITS ---
   const handleStrikePriceChange = (value: number | undefined) => {
-    setStrikePriceEdited(value !== undefined); // true if a number was entered
+    setStrikePriceEdited(true);
     setFormData(prev => ({
       ...prev,
       strikePrice: value,
@@ -258,33 +360,154 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
 
   // --- LOCK TOTAL COST WHEN USER EDITS ---
   const handleTotalCostChange = (value: number | undefined) => {
-    setTotalCostEdited(value !== undefined && value !== 0);
+    if (!formData.type) return;
     setFormData(prev => ({
       ...prev,
       totalCost: value,
     }));
+    if (formData.type == "Stock") {
+      setTotalCostEdited(value != Number((formData.entryPrice! * formData.shares!).toFixed(2)));
+    } else {
+      setTotalCostEdited(value != Number((formData.entryPremium! * formData.contracts!).toFixed(2)));
+    }
   };
 
+  useEffect(() => {
+    if (!formData.type) return;
+
+    if (formData.type == "Stock" && formData.shares && formData.entryPrice) {
+      setTotalCostEdited(formData.totalCost != undefined && formData.totalCost != 0 && (formData.totalCost != Number((formData.entryPrice * formData.shares).toFixed(2))));
+    } else { 
+      if (formData.contracts && formData.entryPremium) {
+        setTotalCostEdited(formData.totalCost != undefined && formData.totalCost != 0 && (formData.totalCost != Number((formData.entryPremium * formData.contracts).toFixed(2))));
+      }
+    }
+  }, [formData.shares, formData.contracts]);
 
   // --- HANDLE SUBMISSION ---
-  const handleSubmit = (e: React.FormEvent) => {
-    // FIX THIS
-    e.preventDefault();
-    if (!formData.symbol || 
-        (!formData.shares && formData.type === "Stock") || 
-        (!formData.contracts && formData.type === "Options") || 
-        !formData.totalCost ||
-        !formData.entryDate || 
-        !formData.entryTime ){
-      toast.error("Please fill in all required fields ( * )");
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // 1. Get logged-in user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // 2. Guest fallback
+  const isGuest = !user && sessionStorage.getItem("authenticated") === "guest";
+  const guestId = sessionStorage.getItem("guestId");
+
+  if (!user && (!isGuest || !guestId)) {
+    toast.error("You must be logged in or have a valid guest ID to save trades.");
+    return;
+  }
+
+  const outcome: OutcomeType = formData.pnl
+    ? formData.pnl > 0
+      ? "win"
+      : formData.pnl === 0
+      ? "breakeven"
+      : "loss"
+    : "";
+
+  // 3. Build trade object (without `id`)
+  const tradeData = {
+    user_id: user ? user.id : guestId!,
+    symbol: formData.symbol,
+    type: formData.type,
+    direction: formData.direction,
+    contract_exp_date: formatDateEST(formData.contractExpDate),
+    strike_price: formData.strikePrice,
+    dte: formData.dte,
+    entry_date: formatDateEST(formData.entryDate),
+    entry_time: formatTimeEST(formData.entryTime),
+    entry_price: formData.entryPrice,
+    entry_premium: formData.entryPremium,
+    shares: formData.shares,
+    contracts: formData.contracts,
+    still_active: formData.stillActive,
+    exit_date: formatDateEST(formData.exitDate),
+    exit_time: formatTimeEST(formData.exitTime),
+    exit_price: formData.exitPrice,
+    exit_premium: formData.exitPremium,
+    shares_sold: formData.sharesSold,
+    contracts_sold: formData.contractsSold,
+    total_cost: formData.totalCost,
+    stop_loss: formData.stopLoss,
+    stop_loss_type: formData.stopLossType,
+    pnl: formData.pnl,
+    pnl_type: formData.pnlType,
+    setup: formData.setup,
+    setup_rules: formData.setupRules,
+    notes: formData.notes,
+    outcome: outcome,
+  };
+
+  // 4. Handle logged-in user trades
+  if (user) {
+    let data, error;
+    if (trade) {
+      // Update existing trade
+      ({ data, error } = await supabase
+        .from("trades")
+        .update(tradeData)
+        .eq("id", trade.id)
+        .eq("user_id", user.id)
+        .select()
+        .single());
+    } else {
+      // Insert new trade (Supabase will generate numeric id)
+      ({ data, error } = await supabase
+        .from("trades")
+        .insert(tradeData)
+        .select()
+        .single());
+    }
+
+    if (error || !data) {
+      console.error("Insert error:", error);
+      toast.error("Failed to save trade.");
       return;
     }
 
-    const newTrade: TradeFormData = { ...formData, _id: Date.now() };
-    onAddTrade(newTrade);
-    handleReturn();
-    toast.success("Trade added to diary");
-  };
+    // Pass inserted DB trade with numeric id
+    onAddTrade({
+      ...tradeData,
+      id: data.id,
+    });
+
+  } 
+  // 5. Handle guest trades
+  else if (isGuest && guestId) {
+    const storedTrades = JSON.parse(sessionStorage.getItem("trades") || "[]");
+
+    // Get last used guest ID (or 0 if none)
+    const lastId = Number(sessionStorage.getItem("lastGuestId") || 0);
+    const nextId = lastId + 1;
+    sessionStorage.setItem("lastGuestId", String(nextId));
+
+    let updatedTrades;
+
+    if (trade) {
+      // Update guest trade
+      updatedTrades = storedTrades.map((t: TradeInsert) =>
+        t.id === trade.id ? { ...tradeData, id: t.id } : t
+      );
+      onAddTrade({ ...tradeData, id: trade.id });
+    } else {
+      // Insert new guest trade with numeric ID
+      const newTrade: TradeInsert = { ...tradeData, id: nextId };
+      updatedTrades = [...storedTrades, newTrade];
+      onAddTrade(newTrade);
+    }
+
+    sessionStorage.setItem("trades", JSON.stringify(updatedTrades));
+  }
+  
+  toast.success(trade ? "Trade updated" : "Trade added to diary");
+  handleReturn();
+};
+
 
   // --- HANDLE TRADE TYPE CHANGE ---
   const handleTypeChange = (newType: TradeType) => {
@@ -302,11 +525,7 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
       strikePrice: undefined,
       dte: undefined,
       contractExpDate: null,
-      // entryDate: new Date(),
-      // entryTime: null,
       stillActive: false,
-      // exitDate: null,
-      // exitTime: null,
       sharesSold: undefined,
       contractsSold: undefined,
       stopLoss: undefined,
@@ -316,9 +535,9 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
       setup: "",
       setupRules: [],
       notes: "",
-      outcome: "",
     });
     setTotalCostEdited(false);
+    setStrikePriceEdited(false);
     setEntryPriceEdited(false);
     setExitPriceEdited(false);
   };
@@ -361,32 +580,12 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
     return entryTime;
   }
   
-  function formatDateLocal(date: Date): string {
-    return date.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
-  }
-
-  function getHolidaySet(year: number) {
-    const holidays = hd.getHolidays(year);
-    return new Set(holidays.map(h => formatDateLocal(new Date(h.date))));
-  }
-  
-  function isTradingDay(date: Date): boolean {
-    const day = date.getDay();
-    if (day === 0 || day === 6) return false;
-
-    const year = date.getFullYear();
-    if (!holidayCache[year]) holidayCache[year] = getHolidaySet(year);
-
-    const key = formatDateLocal(date);
-    return !holidayCache[year].has(key);
-  }
-  
-  function getNearestTradingDay(date: Date = new Date()): string {
+  function getNearestTradingDay(date: Date = new Date()): string | null{
     const d = new Date(date);
-    if (isTradingDay(d)) return formatDateLocal(d);
+    if (isTradingDay(d)) return formatDateEST(d);
     d.setDate(d.getDate() - 1);
     while (!isTradingDay(d)) d.setDate(d.getDate() - 1);
-    return formatDateLocal(d); // use local YYYY-MM-DD
+    return formatDateEST(d); // use local YYYY-MM-DD
   }
   
   function clampEntryDate(date: Date | null | undefined): Date | null {
@@ -412,9 +611,13 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
         }
         current.setDate(current.getDate() + 1);
     }
-    console.log(dte);
 
-    }, [formData.type, formData.entryDate, formData.contractExpDate]);
+     setFormData(prev => ({
+      ...prev,
+      dte: dte,
+    }));
+
+  }, [formData.type, formData.entryDate, formData.contractExpDate]);
 
   // ✅ Utility: Merge date + time into UNIX seconds
   const mergeDateTimeToUnix = (date: Date | null, time: Date | null): number | undefined => {
@@ -455,13 +658,13 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
           if (entryUnix) url.searchParams.append('timestamp', entryUnix.toString());
           const res = await fetch(url.toString());
           const data = await res.json();
-          const price = Number(((data.high + data.low + data.close) / 3).toFixed(3));
+          const price = Number(((data.high + data.low + data.close) / 3).toFixed(2));
           setTypicalEntryPrice(prev => prev === price ? prev : price);
         } catch { setTypicalEntryPrice(null); }
-      }, 500);
+      }, 1000);
     }
 
-    if (formData.symbol && formData.type === "Stock" && formData.exitDate && formData.exitTime) {
+    if (formData.symbol && formData.exitDate && formData.exitTime) {
       exitTimeout = setTimeout(async () => {
         try {
           const url = new URL('/api/bar', window.location.origin);
@@ -469,10 +672,10 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
           if (exitUnix) url.searchParams.append('timestamp', exitUnix.toString());
           const res = await fetch(url.toString());
           const data = await res.json();
-          const price = Number(((data.high + data.low + data.close) / 3).toFixed(3));
+          const price = Number(((data.high + data.low + data.close) / 3).toFixed(2));
           setTypicalExitPrice(prev => prev === price ? prev : price);
         } catch { setTypicalExitPrice(null); }
-      }, 500);
+      }, 100);
     }
 
     return () => {
@@ -488,24 +691,31 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
     setFormData(prev => {
       const updated = { ...prev };
 
-      // ENTRY PRICE
-      if (formData.type === "Stock" && typicalEntryPrice && !entryPriceEdited && !formData.entryPrice) {
-        updated.entryPrice = typicalEntryPrice;
+      // ENTRY PRICE (Stock)
+      if (formData.type === "Stock" && !entryPriceEdited) {
+        if (typicalEntryPrice && updated.entryDate && updated.entryTime) {
+          updated.entryPrice = typicalEntryPrice;
+        }
       }
 
-      if (formData.type === "Options" && typicalEntryPrice && !strikePriceEdited) {
-        updated.strikePrice = Math.round(typicalEntryPrice);
+      // STRIKE PRICE (Options)
+      if (formData.type === "Options" && !strikePriceEdited) {
+        if (typicalEntryPrice && updated.entryDate && updated.entryTime) {
+          updated.strikePrice = Math.round(typicalEntryPrice);
+        }
       }
 
-      // EXIT PRICE
-      if (formData.type === "Stock" && typicalExitPrice && !exitPriceEdited && !formData.stillActive) {
-        updated.exitPrice = typicalExitPrice;
+      // EXIT PRICE (Stock)
+      if (formData.type === "Stock" && !exitPriceEdited && !formData.stillActive) {
+        if (typicalExitPrice && updated.exitDate && updated.exitTime) {
+          updated.exitPrice = typicalExitPrice;
+        }
       }
 
       // TOTAL COST
       if (!totalCostEdited) {
         if (formData.type === "Stock" && updated.entryPrice && updated.shares) {
-          updated.totalCost = Number((updated.entryPrice * updated.shares).toFixed(3));
+          updated.totalCost = Number((updated.entryPrice * updated.shares).toFixed(2));
         } else if (formData.type === "Options" && updated.entryPremium && updated.contracts) {
           updated.totalCost = Number(((updated.contracts * updated.entryPremium) * 100).toFixed(3));
         } else {
@@ -529,9 +739,17 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
       // PNL
       if (!updated.stillActive && updated.totalCost !== undefined) {
         if (formData.type === "Stock" && updated.exitPrice !== undefined && updated.sharesSold !== undefined) {
-          updated.pnl = Number(((updated.exitPrice * updated.sharesSold) - updated.totalCost).toFixed(3));
+          if (formData.pnlType == "$") {
+            updated.pnl = Number(((updated.exitPrice * updated.sharesSold) - updated.totalCost).toFixed(2));
+          } else {
+            updated.pnl = Number(((((updated.exitPrice * updated.sharesSold) / updated.totalCost) - 1) * 100).toFixed(2));
+          }
         } else if (formData.type === "Options" && updated.exitPremium !== undefined && updated.contractsSold !== undefined) {
-          updated.pnl = Number(((updated.exitPremium * updated.contractsSold * 100) - updated.totalCost).toFixed(3));
+          if (formData.pnlType == "$") {
+            updated.pnl = Number(((updated.exitPremium * updated.contractsSold * 100) - updated.totalCost).toFixed(2));
+          } else {
+            updated.pnl = Number(((((updated.exitPremium * updated.contractsSold * 100) / updated.totalCost) - 1) * 100).toFixed(2));
+          }
         } else updated.pnl = undefined;
       }
 
@@ -550,6 +768,7 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
     formData.entryTime,
     formData.exitDate,
     formData.exitTime,
+    formData.entryPrice,
     formData.entryPremium,
     formData.contracts,
     formData.shares,
@@ -558,16 +777,56 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
     formData.contractsSold,
     formData.exitPrice,
     formData.exitPremium,
+    formData.pnlType,
+    formData.pnl,
     calculateDTE
   ]);
 
-  // AUTO PNL TYPE CALCULATION change % to $ vice versa
   useEffect(() => {
-    if (!formData.pnl) return;
+  if (formData.stopLoss && formData.totalCost) {
+    setFormData(prev => {
+      const updated = { ...prev };
 
-    
+      if (updated.stopLossType === "$") {
+        // % → $
+        updated.stopLoss = Number((updated.totalCost! * (updated.stopLoss! / 100)).toFixed(2));
+      } else {
+        // $ → %
+        updated.stopLoss = Number(((updated.stopLoss! / updated.totalCost!) * 100).toFixed(2));
+      }
 
-  }, [formData.pnlType, formData.pnl])
+      return updated;
+    });
+  }
+}, [formData.stopLossType]);
+
+
+ // AUTO PNL TYPE CALCULATION: switch between % and $
+//   useEffect(() => {
+//     if (!formData.totalCost || formData.pnl === undefined) return;
+
+//     const { pnl, totalCost, pnlType } = formData;
+
+//     let newPnl: number | undefined = undefined;
+
+//     if (pnlType === "$") {
+//       // convert % → $
+//       console.log("% to $");
+//       newPnl = (pnl / 100) * totalCost;
+//     } else if (pnlType === "%") {
+//       // convert $ → %
+//       console.log("$ to %");
+//       console.log(pnl, totalCost);
+//       newPnl = (pnl / totalCost) * 100;
+//     }
+
+//     if (newPnl !== undefined && newPnl !== pnl) {
+//       setFormData((prev) => ({
+//         ...prev,
+//         pnl: Number(((((pnl / totalCost) / 100) - 1) * 100).toFixed(2)),
+//       }));
+//     }
+// }, [formData.pnlType]);
 
   // --- AUTO-ADJUST CHART INTERVAL ---
   const getChartInterval = () => {
@@ -577,15 +836,15 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
       if (dteNum <= 2) return "5m";
       return "1d";
     }
-    return "5m";
+    return formData.entryTime ? "1m" : "5m";
   };
 
   return (
     <main>
       <div className="px-4 bg-gray-100 max-w-7xl min-h-screen mx-auto space-y-6">
         {/* Trade Form */}
-          <div>
-            <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-6 pl-4 mr-4">
+          <form onSubmit={handleSubmit} >
+            <div className="flex flex-col md:flex-row gap-6 pl-4 mr-4">
             <div className="bg-white rounded-xl shadow-lg border p-4 w-full md:w-4/7 transition-all duration-300">
                 <h2 className="flex justify-center text-xl font-bold text-gray-900 mb-3 border-b pb-2">Add Trade</h2>
 
@@ -605,7 +864,7 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
                     <input
                       required
                       placeholder="Ticker"
-                      value={symbol}
+                      value={formData.symbol}
                       onChange={e => handleSymbol(e.target.value.trim().toUpperCase())}
                       className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg shadow-sm 
                                 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
@@ -656,8 +915,8 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
                         options={[
                           { value: "Buy Call", label: "Buy Call"},
                           { value: "Buy Put", label: "Buy Put"},
-                          { value: "Sell Call", label: "Sell Call"},
-                          { value: "Sell Put", label: "Sell Put"},
+                          // { value: "Sell Call", label: "Sell Call"},
+                          // { value: "Sell Put", label: "Sell Put"},
                         ]}
                         placeholder = "Select..."
                         className="text-gray-900 shadow-sm text-sm"
@@ -1050,7 +1309,7 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
 
                 
                 {/* Fourth row: stop loss, pnl*/}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div className = "w-full">
                     <label className="block text-xs font-medium text-gray-700 mb-2">Total Cost</label>
                     <input
@@ -1077,7 +1336,7 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
                             const val = e.target.value ? Number(e.target.value) : undefined;
                             setFormData({ ...formData, stopLoss: val });
                         }}                        
-                        placeholder="Stop Loss"
+                        placeholder="00.00"
                         className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                       />
                       <select
@@ -1103,7 +1362,7 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
                             setFormData({ ...formData, pnl: val });
                         }} 
                         disabled={formData.stillActive}
-                        placeholder="pnl"
+                        placeholder="00.00"
                         className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 disabled:bg-gray-100"
                       />
                       <select
@@ -1122,13 +1381,14 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
             <div className="bg-white rounded-xl shadow-lg border p-4 w-full md:w-3/6 transition-all duration-300">
                 {formData.symbol && formData.type ? (
                     <Chart
-                        ticker={getTicker(formData.symbol)}
-                        interval={getChartInterval()}
-                        entry={entryUnix as unknown as Time}
-                        exit={exitUnix as unknown as Time}
-                        height={390}
-                        width={600}
-                        page="diary"
+                      key={`${getTicker(formData.symbol)}-${entryUnix}-${exitUnix}`}
+                      ticker={getTicker(formData.symbol)}
+                      interval={getChartInterval()}
+                      entry={entryUnix as unknown as Time}
+                      exit={exitUnix as unknown as Time}
+                      height={390}
+                      width={600}
+                      page="diary"
                     />
                 ) : (
                     <div className = "w-full flex justify-center items-center">
@@ -1136,7 +1396,7 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
                     </div>
                 )}
                 </div>
-            </form>
+            </div>
               
             {/* Notes */}
             <div className = "bg-white m-8 pr-4 pl-4 pt-2 pb-4 shadow-md rounded-lg">
@@ -1237,15 +1497,15 @@ export default function TradeForm({ onAddTrade, handleReturn }: TradeFormProps) 
               </div>
               <div className="flex justify-center mt-4">
                 <button
-                  onClick = {handleSubmit}
+                  // onClick = {handleSubmit}
                   type="submit"
                   className="w-full md:w-1/3 px-5 py-3 mt-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:bg-indigo-700 transition-colors"
                 >
-                  Submit Trade
+                  {trade ? "Update Trade" : "Submit Trade"}
                 </button>
               </div>
           </div>
-        </div>
+        </form>
     </div>
 </main>
   )

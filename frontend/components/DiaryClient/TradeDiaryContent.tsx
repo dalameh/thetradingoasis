@@ -4,11 +4,45 @@ import { useState, Suspense, useEffect } from "react";
 import TradeForm from "./TradeForm";
 import TradesTable from "./TradesTable";
 import { useSearchParams } from 'next/navigation';
-import {TradeFormData} from './TradeForm';
+import {TradeInsert } from './TradeForm';
+import { supabase } from '@/lib/supabaseFrontendClient';
+import {toast} from 'sonner';
 
 export default function TradeDiaryClient() {
-  const [trades, setTrades] = useState<TradeFormData[]>([]);
+  const [trades, setTrades] = useState<TradeInsert[]>([]);
   const [isAdding, setIsAdding] = useState(false);
+  const [selectedTrade, setSelectedTrade] = useState<TradeInsert | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Open form when row is clicked
+  const handleSelectTrade = (trade: TradeInsert) => {
+    setSelectedTrade(trade);
+    setIsAdding(true);
+  };
+
+  const handleDeleteTrade = async (id: number) => {
+    const isGuest = sessionStorage.getItem("authenticated") === "guest";
+    const guestId = sessionStorage.getItem("guestId");
+
+    if (isGuest && guestId) {
+      // Guest trade: remove from sessionStorage
+      const storedTrades = JSON.parse(sessionStorage.getItem("trades") || "[]");
+      const updatedTrades = storedTrades.filter((t: TradeInsert) => t.id !== id);
+      sessionStorage.setItem("trades", JSON.stringify(updatedTrades));
+      setTrades(updatedTrades);
+      toast.success("Guest trade deleted successfully");
+    } else {
+      // Logged-in user trade: delete from Supabase
+      const { error } = await supabase.from("trades").delete().eq("id", id);
+      if (error) {
+        console.error("Error deleting trade:", error);
+        toast.error("Failed to delete trade");
+      } else {
+        setTrades((prevTrades) => prevTrades.filter((t) => t.id !== id));
+        toast.success("Trade deleted successfully");
+      }
+    }
+  };
 
     // const searchParams = useSearchParams();
     // const createParam = searchParams.get('add');
@@ -28,18 +62,89 @@ export default function TradeDiaryClient() {
     // setTrades(fetchedTrades);
   }, []);
 
-  const handleAddTrade = (trade: TradeFormData) => {
-    setTrades(prev => [...prev, trade]);
-    setIsAdding(false);
+ useEffect(() => {
+  const fetchTrades = async () => {
+    setLoading(true);
+
+    let fetchedTrades: TradeInsert[] = [];
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.warn("No logged in user, will check guest trades:", userError.message);
+      }
+
+      if (user) {
+        // Logged-in user: fetch from Supabase
+        const { data, error } = await supabase
+          .from("trades")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching trades:", error);
+        } else if (data) {
+          fetchedTrades = data;
+        }
+      } else {
+        // No user: fallback to guest trades
+        const guestTrades = JSON.parse(sessionStorage.getItem("trades") || "[]");
+        fetchedTrades = guestTrades;
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching trades:", err);
+      // fallback to guest trades
+      const guestTrades = JSON.parse(sessionStorage.getItem("trades") || "[]");
+      fetchedTrades = guestTrades;
+    }
+
+    setTrades(fetchedTrades);
+    setLoading(false);
   };
 
-  const handleCancel = () => setIsAdding(false);
+  fetchTrades();
+}, []);
+
+
+  const handleAddTrade = (trade: TradeInsert) => {
+
+    setTrades((prev) => {
+      if (!selectedTrade) {
+        // if no selectedtrade just append
+        return [...prev, trade];
+      }
+      // check if trade with this id exists
+      const exists = prev.some(t => t.id === trade.id);
+      if (exists) {
+        // replace the existing trade
+        return prev.map(t => (t.id === trade.id ? trade : t));
+      } else {
+        // shouldnt hit but just in case
+        // new trade, append
+        return [...prev, trade];
+      }
+    });
+
+    setIsAdding(false);
+    setSelectedTrade(null);
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setSelectedTrade(null);
+  }
 
   const stats = (() => {
     const totalTrades = trades.length;
     const wins = trades.filter((t) => t.outcome === "win").length;
     const losses = trades.filter((t) => t.outcome === "loss").length;
-    const winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
+    const closed = trades.filter((t) => t.still_active === false).length
+    const winRate = totalTrades > 0 && closed ? (wins / closed) * 100 : 0;
     const totalPnL = trades.reduce((sum, t) => sum + (t.pnl ? Number(t.pnl) : 0), 0);
     return { totalTrades, wins, losses, winRate, totalPnL };
   })();
@@ -79,11 +184,11 @@ export default function TradeDiaryClient() {
         </div>
 
         {/* Form */}
-        {isAdding && <TradeForm onAddTrade={handleAddTrade} handleReturn={handleCancel} />}
+        {isAdding && <TradeForm onAddTrade={handleAddTrade} handleReturn={handleCancel} trade={selectedTrade} />}
 
         {/* Trades Table */}
         <Suspense fallback={<div className="text-center">Loading trades...</div>}>
-          <TradesTable trades={trades} />
+          <TradesTable trades={trades} onSelectTrade={handleSelectTrade} handleDeleteTrade = {handleDeleteTrade} loading = {loading} />
         </Suspense>
       </div>
     </main>

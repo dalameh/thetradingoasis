@@ -84,7 +84,7 @@ if (totalPages <= 0) return null; // safeguard
           className={`w-10 h-10 shrink-0 rounded-full border pb-1 text-gray-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             page === 0
               ? "opacity-40 cursor-not-allowed"
-              : "bg-white border-gray-300 hover:bg-gray-300 active:bg-gray-200"
+              : `${appPage === "Watchlist" ? "bg-gray-200" : "bg-white"} border-gray-300 hover:bg-gray-300 active:bg-gray-200`
           }`}
         >
           &lsaquo;
@@ -134,7 +134,7 @@ if (totalPages <= 0) return null; // safeguard
           className={`w-10 h-10 shrink-0 rounded-full border pb-1 text-gray-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             page === totalPages - 1
               ? "opacity-40 cursor-not-allowed"
-              : "bg-white border-gray-300 hover:bg-gray-300 active:bg-gray-200"
+              : `${appPage === "Watchlist" ? "bg-gray-200" : "bg-white"} border-gray-300 hover:bg-gray-300 active:bg-gray-200`
           }`}
         >
           &rsaquo;

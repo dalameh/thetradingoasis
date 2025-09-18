@@ -12,8 +12,8 @@ export type Setup = {
   market: string;
   conditions: string;
   created_at: string;
-  win_rate?: number;
-  avg_return?: number | string;
+  total_won?: number;
+  total_used?: number;
 };
 
 type SetupItemProps = {
@@ -23,9 +23,10 @@ type SetupItemProps = {
 };
 
 function SetupItemComponent({ setup, onEdit, onDelete }: SetupItemProps) {
+
   const formatPct = (v?: number | string) => {
     if (v == null) return '—';
-    if (typeof v === 'number') return `${Number(v).toFixed(1)}%`;
+    if (typeof v === 'number') return `${Number(v * 100).toFixed(1)}%`;
     return v;
   };
 
@@ -62,12 +63,12 @@ function SetupItemComponent({ setup, onEdit, onDelete }: SetupItemProps) {
           <div className="text-right text-xs space-y-1 px-4">
             <div>
               <span className="text-gray-400">Win Rate</span>
-              <div className="text-green-400 font-bold text-lg">{formatPct(setup.win_rate)}</div>
+              <div className="text-green-400 font-bold text-lg">{formatPct(setup.total_used && setup.total_won ? (setup.total_won/setup.total_used) : undefined)}</div>
             </div>
-            <div>
+            {/* <div>
               <span className="text-gray-400">Avg Return</span>
               <div className="text-green-400 font-bold text-lg">{formatPct(setup.avg_return)}</div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

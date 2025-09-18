@@ -116,21 +116,118 @@ html, body, #__next {
   border-color: var(--secondary);
 }
 
-/* Datepicker */
+
+
+
+
+/* Datepicker - Oasis Themed (Professional) */
 .react-datepicker {
-  @apply font-sans;
-  background-color: var(--card-background) !important;
-  color: var(--foreground) !important;
-  border: 1px solid var(--primary) !important;
+  @apply font-sans rounded-lg shadow-md;
+  background-color: #f9e8b2 !important; /* soft sand */
+  color: #1a1a1a !important; /* dark text */
+  border: 1px solid #7ec8e3 !important; /* soft water-blue border */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
+
 .react-datepicker__header {
-  background-color: var(--primary) !important;
-  color: #fff !important;
+  background: linear-gradient(90deg, #7ec8e3, #34a3d6) !important; /* calm blue gradient */
+  color: #ffffff !important; /* white header text */
+  border-bottom: 1px solid #4d9bbf !important;
+  padding: 0.5rem 0 !important;
 }
-.react-datepicker__day--selected {
-  background-color: var(--primary) !important;
-  color: #fff !important;
+
+.react-datepicker__current-month {
+  color: #000000 !important; /* deep teal for month */
+  font-weight: 600 !important;
+  font-size: 1rem;
 }
+
+.react-datepicker__day,
+.react-datepicker__day-name {
+  color: #1a1a1a !important;
+  font-size: 0.875rem;
+  line-height: 2rem;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #e09b34 !important; /* rich sand highlight */
+  color: #1a1a1a !important;
+  border-radius: 0.375rem;
+  transition: background 0.2s;
+}
+
+.react-datepicker__day:hover:not(.react-datepicker__day--disabled) {
+  background-color: #f0b65e !important; /* slightly lighter sand on hover */
+  color: #1a1a1a !important;
+}
+
+.react-datepicker__day--disabled {
+  color: #bfbfbf !important;
+  background-color: #f9e8b2 !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.react-datepicker__triangle {
+  display: none;
+}
+
+/* Navigation Arrows */
+.react-datepicker__navigation {
+  border: none !important;
+  background-color: #cce6f0 !important; /* light water */
+  border-radius: 0.25rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.react-datepicker__navigation--previous:hover,
+.react-datepicker__navigation--next:hover {
+  background-color: #a0d1e8 !important;
+}
+
+.react-datepicker__navigation--previous .react-datepicker__navigation-icon::before,
+.react-datepicker__navigation--next .react-datepicker__navigation-icon::before {
+  border-color: #204b5c !important; /* teal arrow */
+}
+
+.react-datepicker__navigation--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
+
+
+/* Remove borders from react-time-picker inputs */
+.react-time-picker__wrapper {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.react-time-picker__inputGroup__input {
+  border: none !important;
+  outline: none !important;
+}
+
+
+/* Style the dropdowns (hour/minute select) */
+.react-time-picker__inputGroup__select {
+  border: none !important;
+  outline: none !important;
+  background-color: #f3f4f6 !important; /* light gray (Tailwind's gray-100/200) */
+  color: #111827 !important; /* dark text (gray-900) */
+  border-radius: 6px !important;
+  padding: 2px 4px !important;
+  appearance: none; /* remove native arrow styling */
+}
+
+
 
 /* Any custom utility animations */
 @keyframes spin-reverse {
@@ -254,4 +351,15 @@ html, body, #__next {
 .sidebar {
   scrollbar-width: thin; 
   scrollbar-color: #38bdf8 transparent;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.2; }
+}
+
+.twinkle {
+  animation-name: twinkle;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
 }

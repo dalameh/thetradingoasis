@@ -9,51 +9,185 @@ import { toast } from "sonner";
 import PageHeader from '@/components/PageHeader'
 import { Edit, Check } from "lucide-react";
 import {supabase} from "@/lib/supabaseFrontendClient"
-
+import {TradeInsert} from "@/components/DiaryClient/TradeForm"
 type Section = "stats" | "main";
+
+const DEFAULT_STATS = ["profit-factor", "win-rate", "avg-pnl-return", "total-trades"];
+const DEFAULT_MAIN = ["watchlist", "daily-pnl-chart", "pnl-calender", "quick-actions", "eps-dates"];
 
 export default function Dashboard() {
   const [isEditing, setIsEditing] = useState(false);
   const [managerOpenFor, setManagerOpenFor] = useState<Section | null>(null);
-  const [statsWidgets, setStatsWidgets] = useState<string[]>(["net-pl", "win-rate", "volume-traded", "total-trades"]);
-  const [mainWidgets, setMainWidgets] = useState<string[]>(["eps-dates", "market-summary", "quick-actions",  "performance-chart"]);
+  const [statsWidgets, setStatsWidgets] = useState<string[]>([]);
+  const [mainWidgets, setMainWidgets] = useState<string[]>([]);
   const [username, setUsername] = useState<string>("");
   const [isGuest, setIsGuest] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [mounted, setMounted] = useState(false); // 🔹 Track client mount
+  const [mounted, setMounted] = useState(false);
+  const [trades, setTrades] = useState<TradeInsert[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);   
-
+  // Track mount
   useEffect(() => {
-    const fetchUsername = async () => {
-    // Check Supabase session
+    setMounted(true);
+  }, []);
+
+  // --- Resolve user or guest ---
+  useEffect(() => {
+    if (!mounted) return;
+
+    const fetchUser = async () => {
       const { data } = await supabase.auth.getSession();
 
-      if (!mounted) return;
-
       if (data.session?.user) {
-        // Authenticated user
+        // ✅ Authenticated user
         const user = data.session.user;
         setUsername(user.user_metadata?.username ?? "");
         setIsGuest(false);
+        setUserId(user.id);
       } else {
-        // Guest fallback
+        // ✅ Guest fallback
         const guest = sessionStorage.getItem("authenticated") === "guest";
         if (guest) {
-          setUsername(sessionStorage.getItem("guest_username") ?? "");
+          setUsername(sessionStorage.getItem("guest_username") ?? "Guest");
           setIsGuest(true);
+          setUserId(sessionStorage.getItem("guestId")); // guestId is stored already
         } else {
-          // Not signed in at all
           setUsername("");
           setIsGuest(false);
+          setUserId(null);
         }
       }
 
       setLoading(false);
     };
 
-      fetchUsername();
+    fetchUser();
   }, [mounted]);
+
+// --- Fetch widgets ---
+useEffect(() => {
+  if (!mounted || loading || !userId) return;
+
+  const fetchWidgets = async () => {
+    if (!isGuest) {
+      const { data, error } = await supabase
+        .from("dashboard")
+        .select("stats_widgets, main_widgets")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116") {
+          // No row → insert defaults
+          await supabase.from("dashboard").insert({
+            user_id: userId,
+            stats_widgets: DEFAULT_STATS,
+            main_widgets: DEFAULT_MAIN,
+          });
+          setStatsWidgets(DEFAULT_STATS);
+          setMainWidgets(DEFAULT_MAIN);
+        } else {
+          console.error("Error fetching dashboard widgets:", error);
+        }
+      } else if (data) {
+        setStatsWidgets(
+          Array.isArray(data.stats_widgets) && data.stats_widgets.length
+            ? data.stats_widgets
+            : DEFAULT_STATS
+        );
+        setMainWidgets(
+          Array.isArray(data.main_widgets) && data.main_widgets.length
+            ? data.main_widgets
+            : DEFAULT_MAIN
+        );
+      }
+    } else {
+      // Guest → sessionStorage
+      const storedStats = JSON.parse(sessionStorage.getItem("stats_widgets") || "[]");
+      const storedMain = JSON.parse(sessionStorage.getItem("main_widgets") || "[]");
+
+      setStatsWidgets(storedStats.length ? storedStats : DEFAULT_STATS);
+      setMainWidgets(storedMain.length ? storedMain : DEFAULT_MAIN);
+    }
+
+    // ✅ mark that we’ve done the first load
+    setHasLoaded(true);
+  };
+
+  fetchWidgets();
+}, [isGuest, userId, mounted, loading]);
+
+// --- Persist widgets ---
+useEffect(() => {
+  if (!mounted || loading || !userId || !hasLoaded) return;
+
+  const saveWidgets = async () => {
+    if (!isGuest) {
+      await supabase.from("dashboard").upsert({
+        user_id: userId,
+        stats_widgets: [...statsWidgets],
+        main_widgets: [...mainWidgets],
+        updated_at: new Date().toISOString(),
+      });
+    } else {
+      sessionStorage.setItem("authenticated", "guest");
+      sessionStorage.setItem("guestId", userId);
+      sessionStorage.setItem("stats_widgets", JSON.stringify(statsWidgets));
+      sessionStorage.setItem("main_widgets", JSON.stringify(mainWidgets));
+    }
+  };
+
+  saveWidgets();
+}, [statsWidgets, mainWidgets, isGuest, userId, mounted, loading, hasLoaded]);
+
+  useEffect(() => {
+  const fetchTrades = async () => {
+   const { data, error } = await supabase.auth.getUser();
+
+  const user = data?.user;
+
+  // Treat "no user" as not an error for guest purposes
+  const isGuest = !user && sessionStorage.getItem("authenticated") === "guest";
+  const guestId = sessionStorage.getItem("guestId");
+
+  if (!user && (!isGuest || !guestId)) {
+    toast.error("You must be logged in or have a valid guest ID to see trades.");
+    setTrades([]);
+    setLoading(false);
+    return;
+  }
+
+    let tradesData: TradeInsert[] = [];
+
+    if (user) {
+      // Logged-in user: fetch from Supabase
+      const { data, error } = await supabase
+        .from("trades")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        toast.error("Failed to fetch trades");
+      } else {
+        tradesData = data;
+      }
+    } else if (isGuest && guestId) {
+      // Guest user: fetch from sessionStorage
+      const storedTrades = sessionStorage.getItem("trades");
+      tradesData = storedTrades ? JSON.parse(storedTrades) : [];
+    }
+
+    setTrades(tradesData);
+    setLoading(false);
+  };
+
+  fetchTrades();
+}, [mounted]);
+
+
 
   const findWidgetMeta = (id: string) => AVAILABLE_WIDGETS.find(w => w.id === id);
   const MAX_MAIN_ROWS = 3;
@@ -273,7 +407,7 @@ export default function Dashboard() {
               <div key={id} draggable={isEditing} onDragStart={e => onDragStart(e, "stats", idx)} onDragOver={onDragOver} onDrop={e => onDrop(e, "stats", idx)}
                 className={`relative p-3 ${isEditing ? "transform hover:scale-101" : ""} rounded-lg border bg-white shadow-sm ${isEditing ? "cursor-move" : "cursor-default"} transition-all h-25`}>
                 {isEditing && <button onClick={() => toggleWidgetFor("stats", id)} className="absolute -top-2 -right-2 bg-white rounded-full p-1 border text-red-600 hover:bg-red-50" title="Remove"><X className="w-4 h-4"/></button>}
-                <StatsWidget widgetId={id} />
+                <StatsWidget widgetId={id} trades = {trades} />
               </div>
             ))}
 
@@ -347,7 +481,7 @@ export default function Dashboard() {
                       {/* header */}                      
                       {/* If component exists, render it; else show title/desc */}
                       {meta?.component ? (
-                        meta.component({ editing: isEditing })
+                        meta.component({ editing: isEditing, trades: trades })
                       ) : (
                         <>
                           <div className="text-sm text-gray-500 mt-2">{meta?.description}</div>

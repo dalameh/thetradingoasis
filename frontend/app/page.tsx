@@ -4,59 +4,60 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
+
+interface Star {
+  top: string;
+  left: string;
+  size: number;
+  duration: number;
+  delay: number;
+}
+
 function StarField() {
-  const [stars, setStars] = useState<{top: string, left: string, width: number, height: number, opacity: number}[]>([]);
-  useEffect(() => {
-      // lock scrolling
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-
-      return () => {
-        // restore when leaving this page
-        document.body.style.overflow = prev;
-      };
-    }, []);
+  const [stars, setStars] = useState<Star[]>([]);
 
   useEffect(() => {
-    const generatedStars = Array.from({ length: 200 }).map(() => ({
-      width: Math.random() * 2 + 0.5,
-      height: Math.random() * 2 + 0.5,
+    // Fewer stars on mobile
+    const count = window.innerWidth < 768 ? 30 : 60;
+
+    const generatedStars = Array.from({ length: count }).map(() => ({
       top: `${Math.random() * 100}%`,
       left: `${Math.random() * 100}%`,
-      opacity: Math.random() * 0.5 + 0.5,
+      size: Math.random() * 2 + 1, // 1–3px
+      duration: Math.random() * 3 + 2, // 2–5s twinkle
+      delay: Math.random() * 5, // random start offset
     }));
+
     setStars(generatedStars);
   }, []);
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Stars (CSS animation, very cheap) */}
       {stars.map((star, i) => (
-        <motion.div
+        <div
           key={i}
-          className="absolute rounded-full bg-white"
+          className="absolute rounded-full bg-white twinkle"
           style={{
-            width: star.width,
-            height: star.height,
             top: star.top,
             left: star.left,
-            opacity: star.opacity,
-            filter: "blur(0.5px)",
+            width: star.size,
+            height: star.size,
+            animationDuration: `${star.duration}s`,
+            animationDelay: `${star.delay}s`,
           }}
-          animate={{ opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: Math.random() * 3 + 2, repeat: Infinity }}
         />
       ))}
     </div>
   );
 }
 
-
 export default function OasisLandingPage() {
   const router = useRouter();
   const handleSignIn = () => router.push("/signin");
 
   return (
-    <main className="relative w-full h-[100svh] flex flex-col items-center justify-center overflow-hidden  bg-gradient-to-b from-[#0a1b2d] to-[#10293f] text-white px-6">
+    <main className="relative w-full h-[100svh] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#0a1b2d] to-[#10293f] text-white px-6">
       
       {/* Background stars */}
       <div className="absolute inset-0 pointer-events-none">
@@ -125,15 +126,15 @@ export default function OasisLandingPage() {
 
       {/* Features */}
       <motion.ul
-        className="mt-4 space-y-2 text-sm md:text-base text-gray-200"
+        className="mt-4 space-y-2 text-center text-sm md:text-base text-gray-200"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.8 }}
       >
-        <li>🌴 Visualize trades in a serene, clear interface</li>
-        <li>💧 Track your portfolio with refreshing precision</li>
-        <li>☀️ Daily market insights to guide your journey</li>
-        <li>🏜️ A calm place to reflect on strategies</li>
+        <li>🌴 Flow through market trends with clarity using charts and technical scans </li>
+        <li>💧 Flow through headlines with refreshing sentiment insights</li>
+        <li>☀️ Nurture your portfolio with watchlists and personalized tracking</li>
+        <li>🏜️ Journal your trades with notes, checklists, and photo reflections</li>
       </motion.ul>
 
       {/* Sign-in button */}

@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseFrontendClient";
-import { AuthError } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { useWatchlistStore } from "@/store/WatchlistStore"; // ✅ import store
 
 export default function SigninUp() {
   const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
@@ -14,6 +14,7 @@ export default function SigninUp() {
   const [hasGuestSession, setHasGuestSession] = useState(false);
 
   const router = useRouter();
+  const { setUserId } = useWatchlistStore(); // ✅ grab setter from store
 
   // Check for real user session and detect existing guest session
   useEffect(() => {
@@ -65,8 +66,7 @@ export default function SigninUp() {
       } else {
         // Successful real login/signup → clear guest session
         if (sessionStorage.getItem("authenticated") === "guest") {
-          sessionStorage.removeItem("guestId");
-          sessionStorage.removeItem("authenticated");
+          sessionStorage.clear();
         }
 
         router.replace("/dashboard");
@@ -78,7 +78,7 @@ export default function SigninUp() {
         );
       }
     } catch (err: unknown) {
-      if (err instanceof AuthError || err instanceof Error) toast.error(err.message);
+      if (err instanceof Error) toast.error(err.message);
       else toast.error("Something went wrong");
     } finally {
       setSubmitting(false);
@@ -90,18 +90,23 @@ export default function SigninUp() {
     if (submitting) return;
     setSubmitting(true);
 
-    if (!sessionStorage.getItem("guestId")) {
-      sessionStorage.setItem("guestId", crypto.randomUUID());
+    // ✅ Ensure guestId exists
+    let gid = sessionStorage.getItem("guestId");
+    if (!gid) {
+      gid = crypto.randomUUID();
+      sessionStorage.setItem("guestId", gid);
     }
     sessionStorage.setItem("authenticated", "guest");
 
+    // ✅ Update Zustand store immediately
+    setUserId(gid);
+
     router.replace("/dashboard");
+    setSubmitting(false);
   };
 
   return (
-    <main className="w-full min-h-screen h-screen flex items-center justify-center 
-      px-4 py-8 bg-gradient-to-br from-[#40c0f3] via-[#FFC857] to-[#ff6c44]">
-
+    <main className="w-full min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-[#40c0f3] via-[#FFC857] to-[#ff6c44]">
       <div className="w-full max-w-md p-6 sm:p-8 bg-white bg-opacity-90 text-black rounded-xl shadow-lg overflow-hidden transform scale-90">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold text-blue-600">The Trading Oasis</h1>
@@ -168,7 +173,7 @@ export default function SigninUp() {
           <hr className="grow border-gray-200" />
         </div>
 
-        {/* Single guest button: sign in or continue */}
+        {/* Single guest button */}
         <button
           disabled={submitting}
           className="w-full py-2 px-4 rounded-md text-white font-medium bg-gradient-to-r from-[#0288d1] to-[#4fc3f7] hover:scale-105 shadow-md"

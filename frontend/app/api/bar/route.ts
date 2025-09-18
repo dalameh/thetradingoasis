@@ -9,7 +9,10 @@ export async function GET(req: NextRequest) {
     const timestampStr = searchParams.get("timestamp");
 
     if (!symbol || !timestampStr) {
-      return NextResponse.json({ error: "Missing symbol or timestamp" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing symbol or timestamp" },
+        { status: 400 }
+      );
     }
 
     const entryUnix = parseInt(timestampStr, 10) * 1000; // ms
@@ -43,11 +46,12 @@ export async function GET(req: NextRequest) {
     }
 
     const bar = bars.quotes[0];
-    console.log(bar);
 
-    // Return the actual bar datetime from Yahoo
+    // ✅ Standardize time to seconds since epoch
+    const barTimeSec = Math.floor(new Date(bar.date).getTime() / 1000);
+
     return NextResponse.json({
-      date: bar.date, // ✅ use bar.date, not timestamp
+      time: barTimeSec, // ✅ always seconds
       open: bar.open ?? null,
       high: bar.high ?? null,
       low: bar.low ?? null,
@@ -55,12 +59,9 @@ export async function GET(req: NextRequest) {
       volume: bar.volume ?? null,
     });
 
-
   } catch (err: unknown) {
     console.error(err);
-    // Safely extract message
     const message = err instanceof Error ? err.message : String(err);
-
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
