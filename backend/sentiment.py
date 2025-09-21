@@ -445,7 +445,10 @@ def delete_sentiment(id: str, x_api_key: str = Header(...)):
     supabase.table("sentiment_results").delete().eq("id", id).execute()
     return {"id": id, "detail": "Deleted successfully"}
 
-
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+    
 # uses the pick from two models methods
 # backend/sentiment_api.py
 # from fastapi import FastAPI, HTTPException, Header
