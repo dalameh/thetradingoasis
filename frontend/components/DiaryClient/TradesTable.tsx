@@ -457,12 +457,17 @@ export default function TradesTable({ trades, onSelectTrade, loading, handleDele
                     <td className="px-4 py-2">
                       <div className="h-4 w-12 mx-auto bg-gray-200 rounded animate-pulse" />
                     </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-2">
+                      <div className="h-4 w-12 mx-auto bg-gray-200 rounded animate-pulse" />
+                    </td>
                   </tr>
                 ))}
               </>           
             ) : !loading && trades.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-gray-400">
+                <td colSpan={10} className="py-12 text-center text-gray-400">
                   <div className="text-6xl mb-4">📉</div>
                   <p className="text-lg font-medium">No trades yet</p>
                   <p className="text-sm">Add a trade to get started</p>

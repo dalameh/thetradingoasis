@@ -1,9 +1,13 @@
-import EarningsTable from "@/components/dashboard/Widgets/EarningsTable"
-import QuickActionsWidget from "@/components/dashboard/Widgets/QuickActions";
-import WatchlistTable from "@/components/dashboard/Widgets/WatchlistTable";
+"use client";
+
+import React from "react";
+import { TradeInsert } from "@/components/DiaryClient/TradeForm";
 import DailyPnlChart from "@/components/dashboard/Widgets/DailyPnLChart";
 import { PnlCalendar } from "@/components/dashboard/Widgets/PnLCalender";
-import {TradeInsert} from "@/components/DiaryClient/TradeForm";
+import WatchlistTable from "@/components/dashboard/Widgets/WatchlistTable";
+import QuickActionsWidget from "@/components/dashboard/Widgets/QuickActions";
+import EarningsTable from "@/components/dashboard/Widgets/EarningsTable";
+import { StatsWidget } from "@/components/dashboard/StatsWidget";
 
 export interface AvailableWidget {
   id: string;
@@ -12,46 +16,104 @@ export interface AvailableWidget {
   category: string;
   span: 1 | 2 | 3;
   rowSpan?: 1 | 2;
-// Type is fine:
-  component?: (props?: { editing?: boolean, trades?: TradeInsert[]}) => React.ReactNode;
+  component?: (props?: { editing?: boolean; trades?: TradeInsert[] }) => React.ReactNode;
 }
 
-
-// Example widgets
 export const AVAILABLE_WIDGETS: AvailableWidget[] = [
-  // Analytics
-  //should only every span 1
-  { id: "net-pnl", title: "Net P&L", description: "Net profit & loss", category: "Analytics", span: 1, rowSpan: 1 },
-  { id: "profit-factor", title: "Profit Factor", description: "profit/loss", category: "Analytics", span: 1, rowSpan: 1 },
-  { id: "win-rate", title: "Win Rate", description: "Percent profitable trades", category: "Analytics", span: 1, rowSpan: 1 },
-  { id: "avg-pnl-return", title: "Average Return", description: "Avg Pnl per Trade", category: "Analytics", span: 1, rowSpan: 1 },
-  { id: "total-trades", title: "Total Trades", description: "Number of Trades Taken", category: "Analytics", span: 1, rowSpan: 1 },
+  // Analytics (stats widgets)
+  {
+    id: "net-pnl",
+    title: "Net P&L",
+    description: "Net profit & loss",
+    category: "Analytics",
+    span: 1,
+    rowSpan: 1,
+    component: (props) => <StatsWidget widgetId="net-pnl" trades={props?.trades} />,
+  },
+  {
+    id: "profit-factor",
+    title: "Profit Factor",
+    description: "Profit/Loss ratio",
+    category: "Analytics",
+    span: 1,
+    rowSpan: 1,
+    component: (props) => <StatsWidget widgetId="profit-factor" trades={props?.trades} />,
+  },
+  {
+    id: "win-rate",
+    title: "Win Rate",
+    description: "Percent profitable trades",
+    category: "Analytics",
+    span: 1,
+    rowSpan: 1,
+    component: (props) => <StatsWidget widgetId="win-rate" trades={props?.trades} />,
+  },
+  {
+    id: "avg-pnl-return",
+    title: "Average Return",
+    description: "Avg PnL per trade",
+    category: "Analytics",
+    span: 1,
+    rowSpan: 1,
+    component: (props) => <StatsWidget widgetId="avg-pnl-return" trades={props?.trades} />,
+  },
+  {
+    id: "total-trades",
+    title: "Total Trades",
+    description: "Number of trades",
+    category: "Analytics",
+    span: 1,
+    rowSpan: 1,
+    component: (props) => <StatsWidget widgetId="total-trades" trades={props?.trades} />,
+  },
 
-  // Trading
-  { id: "daily-pnl-chart", title: "Performance Chart", description: "P/L over time", category: "Trading", span: 2, rowSpan: 1,  
-    component: (props) => {
-    const { trades = [] } = props ?? {}
-    return <DailyPnlChart trades={trades} />}
+  // Trading (main widgets)
+  {
+    id: "daily-pnl-chart",
+    title: "Performance Chart",
+    description: "P/L over time",
+    category: "Trading",
+    span: 2,
+    rowSpan: 1,
+    component: (props) => <DailyPnlChart trades={props?.trades} />,
+  },
+  {
+    id: "watchlist",
+    title: "Watchlist",
+    description: "Your tracked symbols",
+    category: "Trading",
+    span: 1,
+    rowSpan: 2,
+    component: () => <WatchlistTable rpp={5} />,
+  },
+  {
+    id: "quick-actions",
+    title: "Quick Actions",
+    description: "Order shortcuts & templates",
+    category: "Tools",
+    span: 1,
+    rowSpan: 1,
+    component: (props) => <QuickActionsWidget editing={props?.editing ?? false} />,
+  },
+  {
+    id: "pnl-calender",
+    title: "PnL Calendar",
+    description: "Track PnL over dates",
+    category: "Trading",
+    span: 2,
+    rowSpan: 2,
+    component: (props) => <PnlCalendar trades={props?.trades} />,
+  },
+  {
+    id: "eps-dates",
+    title: "Earnings Dates",
+    description: "This week’s top earnings",
+    category: "Market",
+    span: 1,
+    rowSpan: 2,
+    component: () => <EarningsTable rpp={4} />,
   },
   { id: "equity-curve", title: "Equity Curve", description: "Cumulative P&L", category: "Trading", span: 2, rowSpan: 2 },
-  { id: "recent-trades", title: "Recent Trades", description: "Latest executions & positions", category: "Trading", span: 1, rowSpan: 1 },
-  { id: "watchlist", title: "Watchlist", description: "Your tracked symbols", category: "Trading", span: 1, rowSpan: 2, component: () => <WatchlistTable rpp = {5}/>},
-  { id: "open-orders", title: "Open Orders", description: "Active orders table", category: "Trading", span: 1, rowSpan: 1 },
-  { id: "pnl-calender", title: "PnL Calender", description: "Pnl Date Clander", category: "Trading", span: 2, rowSpan: 2, 
-    component: (props) => {
-    const { trades = [] } = props ?? {}
-    return <PnlCalendar trades={trades} />}
-  },
-
-  // Market
-  { id: "eps-dates", title: "Earning Dates", description: "This Weeks Top Earnings", category: "Market", span: 1, rowSpan: 2, component: () => <EarningsTable rpp={4}/>},
-
   { id: "market-summary", title: "Market Summary", description: "Indices & movers", category: "Market", span: 1, rowSpan: 1 },
-
-  // Tools
-  { id: "quick-actions", title: "Quick Actions", description: "Order shortcuts & templates", category: "Tools", span: 1, rowSpan: 1,  
-    component: (props) => {
-    const { editing = false } = props ?? {}; // default to false if props is undefined
-    return <QuickActionsWidget editing={editing} />;}
-  }
 ];
+

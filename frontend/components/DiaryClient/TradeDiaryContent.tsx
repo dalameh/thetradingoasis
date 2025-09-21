@@ -7,8 +7,12 @@ import { useSearchParams } from 'next/navigation';
 import {TradeInsert } from './TradeForm';
 import { supabase } from '@/lib/supabaseFrontendClient';
 import {toast} from 'sonner';
+import { useRouter } from "next/navigation";
 
-export default function TradeDiaryClient() {
+
+function TradeDiaryContent() {
+  const router = useRouter();
+
   const [trades, setTrades] = useState<TradeInsert[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [selectedTrade, setSelectedTrade] = useState<TradeInsert | null>(null);
@@ -44,23 +48,22 @@ export default function TradeDiaryClient() {
     }
   };
 
-    // const searchParams = useSearchParams();
-    // const createParam = searchParams.get('add');
-    // const tickerParam = searchParams.get('ticker');
+    const searchParams = useSearchParams();
+    const createParam = searchParams.get('add');
+    const tickerParam = searchParams.get('ticker');
   
     // if add trade is called from watchlist
-    // useEffect(() => {
-    //   if (createParam === 'true') setIsAdding(true);
-    //   // for guests
-    //   // const stored = localStorage.getItem('setups');
-    //   // if (stored) setSetups(JSON.parse(stored));
-    // }, [createParam]);
+    useEffect(() => {
+      if (createParam === 'true') setIsAdding(true);
+    }, [createParam]);
 
   // Fetch or initialize trades if needed
   useEffect(() => {
-    // Example: fetch trades from backend
-    // setTrades(fetchedTrades);
-  }, []);
+    if (!tickerParam) return;
+
+    setIsAdding(true);
+
+  }, [tickerParam]);
 
  useEffect(() => {
   const fetchTrades = async () => {
@@ -137,6 +140,8 @@ export default function TradeDiaryClient() {
   const handleCancel = () => {
     setIsAdding(false);
     setSelectedTrade(null);
+    // Remove all query params
+    router.replace(window.location.pathname, { scroll: false });
   }
 
   const stats = (() => {
@@ -184,13 +189,21 @@ export default function TradeDiaryClient() {
         </div>
 
         {/* Form */}
-        {isAdding && <TradeForm onAddTrade={handleAddTrade} handleReturn={handleCancel} trade={selectedTrade} />}
+        {isAdding && <TradeForm onAddTrade={handleAddTrade} handleReturn={handleCancel} trade={selectedTrade} ticker = {tickerParam}/>}
 
         {/* Trades Table */}
         <Suspense fallback={<div className="text-center">Loading trades...</div>}>
-          <TradesTable trades={trades} onSelectTrade={handleSelectTrade} handleDeleteTrade = {handleDeleteTrade} loading = {loading} />
+           {!isAdding && <TradesTable trades={trades} onSelectTrade={handleSelectTrade} handleDeleteTrade = {handleDeleteTrade} loading = {loading} />}
         </Suspense>
       </div>
     </main>
+  );
+}
+
+export default function TradeDiaryClient() {
+  return (
+    <Suspense fallback={<div className="text-center">Loading...</div>}>
+      <TradeDiaryContent />
+    </Suspense>
   );
 }

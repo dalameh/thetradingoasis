@@ -32,7 +32,7 @@ function ChartContent() {
       </header>
       <Chart
         ticker={ticker}
-        width={900}
+        width={Math.min(1200, window.innerWidth - 300)} // responsive max width
         height={275}
         page="chart"
       />

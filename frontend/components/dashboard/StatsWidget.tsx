@@ -103,7 +103,7 @@ export function StatsWidget({ widgetId, trades = [] }: StatWidgetProps) {
       <div className="flex justify-between w-full">
         <div className="flex flex-col">
           <div className="text-xs font-medium text-gray-500 mb-1">Net PnL</div>
-          <div className={`text-lg font-semibold ${totalPnL >= 0 ? "text-green-600" : "text-red-600"}`}>
+          <div className={`text-lg font-semibold text-black`}>
             {fmtCurrency(totalPnL)}
           </div>
         </div>

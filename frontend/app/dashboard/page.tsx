@@ -13,7 +13,7 @@ import {TradeInsert} from "@/components/DiaryClient/TradeForm"
 type Section = "stats" | "main";
 
 const DEFAULT_STATS = ["profit-factor", "win-rate", "avg-pnl-return", "total-trades"];
-const DEFAULT_MAIN = ["watchlist", "daily-pnl-chart", "pnl-calender", "quick-actions", "eps-dates"];
+const DEFAULT_MAIN = ["watchlist", "daily-pnl-chart", "pnl-calender", "quick-actions"];
 
 export default function Dashboard() {
   const [isEditing, setIsEditing] = useState(false);
@@ -68,7 +68,7 @@ export default function Dashboard() {
 
 // --- Fetch widgets ---
 useEffect(() => {
-  if (!mounted || loading || !userId) return;
+  if (loading || (!userId && !isGuest)) return; // wait until we know user or guest
 
   const fetchWidgets = async () => {
     if (!isGuest) {
@@ -186,8 +186,6 @@ useEffect(() => {
 
   fetchTrades();
 }, [mounted]);
-
-
 
   const findWidgetMeta = (id: string) => AVAILABLE_WIDGETS.find(w => w.id === id);
   const MAX_MAIN_ROWS = 3;
@@ -363,14 +361,15 @@ useEffect(() => {
 
   const statsPlaceholders = Math.max(0, 4 - statsWidgets.length);
 
-  // 🔹 If not mounted, render placeholders only
-  if (!mounted) {
-    return (
-      <main>
-        <PageHeader title="Your Dashboard"/>
-        <div className="min-h-screen bg-white p-4">
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            {Array.from({ length: 4 }).map((_, i) => (
+  if (!mounted || loading || !hasLoaded) {
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <PageHeader title="Your Dashboard" />
+
+      {/* Stats row placeholders */}
+      <div className="min-h-screen bg-white p-4">
+           <div className="grid grid-cols-4 gap-4 mb-6">
+             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-25 rounded-lg bg-gray-200 animate-pulse"></div>
             ))}
           </div>
@@ -380,9 +379,9 @@ useEffect(() => {
             ))}
           </div>
         </div>
-      </main>
-    );
-  }
+    </main>
+  );
+}
 
   return (
     <main>
@@ -402,7 +401,7 @@ useEffect(() => {
         
         {/* STATS ROW */}
         <section className="mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {statsWidgets.map((id, idx) => (
               <div key={id} draggable={isEditing} onDragStart={e => onDragStart(e, "stats", idx)} onDragOver={onDragOver} onDrop={e => onDrop(e, "stats", idx)}
                 className={`relative p-3 ${isEditing ? "transform hover:scale-101" : ""} rounded-lg border bg-white shadow-sm ${isEditing ? "cursor-move" : "cursor-default"} transition-all h-25`}>
@@ -453,7 +452,11 @@ useEffect(() => {
                   if (!cell.start) return null;
 
                   const meta = findWidgetMeta(cell.id);
-                  const colSpanClass = cell.span === 1 ? "col-span-1" : cell.span === 2 ? "col-span-2" : "col-span-3";
+                  const colSpanClass = cell.span === 1 
+                    ? "col-span-1" 
+                    : cell.span === 2 
+                      ? "col-span-1 sm:col-span-2" 
+                      : "col-span-1 sm:col-span-3";
                   const rowSpanClass = meta?.rowSpan === 2 ? "row-span-2" : "row-span-1";
                   const arrIndex = mainWidgets.indexOf(cell.id);
 
@@ -480,13 +483,13 @@ useEffect(() => {
 
                       {/* header */}                      
                       {/* If component exists, render it; else show title/desc */}
-                      {meta?.component ? (
-                        meta.component({ editing: isEditing, trades: trades })
-                      ) : (
-                        <>
+                      <div className="w-full h-full">
+                        {meta?.component ? (
+                          meta.component({ editing: isEditing, trades })
+                        ) : (
                           <div className="text-sm text-gray-500 mt-2">{meta?.description}</div>
-                        </>
-                      )}
+                        )}
+                      </div>
                     </div>
                   );
                 })
@@ -510,13 +513,13 @@ useEffect(() => {
 
 
         {managerOpenFor && 
-        <WidgetManager  
-          allActiveWidgets={mainWidgets}   // ✅ add this
+         <WidgetManager  
+          allActiveWidgets={[...statsWidgets, ...mainWidgets]}  // universal manager
           activeWidgets={managerOpenFor === "stats" ? statsWidgets : mainWidgets} 
           onToggleWidget={widgetId => toggleWidgetFor(managerOpenFor, widgetId)} 
           onToggleManager={() => setManagerOpenFor(null)} 
           allowedCategory={managerOpenFor === "stats" ? "Analytics" : null} 
-          />
+        />
         }
       </div>
     </main>

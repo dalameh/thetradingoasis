@@ -126,7 +126,7 @@ export default function OasisLandingPage() {
 
       {/* Features */}
       <motion.ul
-        className="mt-4 space-y-2 text-center text-sm md:text-base text-gray-200"
+        className="mt-4 space-y-2 text-center text-xs tracking-wide md:text-base text-gray-200"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.8 }}

@@ -126,6 +126,7 @@ type TradeFormProps = {
     handleReturn: () => void; 
     onAddTrade: (trade: TradeInsert) => void;
     trade?: TradeInsert | null;
+    ticker?: string | null
 };
 
 function parseDateEST(dateString?: string | null): Date | null {
@@ -158,10 +159,10 @@ function parseTimeStringToDate(timeString?: string | null): Date | null {
   return dt;
 }
 
-export default function TradeForm({ onAddTrade, handleReturn, trade}: TradeFormProps) {
+export default function TradeForm({ onAddTrade, handleReturn, trade, ticker}: TradeFormProps) {
   // initial "Add Trade" form
   const initialForm: TradeFormData = {
-    symbol: trade?.symbol || "",
+    symbol: trade?.symbol || ticker || "",
     type: trade?.type || "",
     direction: trade?.direction || "",
     contractExpDate: trade?.contract_exp_date ? parseDateEST(trade.contract_exp_date) : null,
