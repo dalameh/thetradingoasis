@@ -69,7 +69,7 @@ export function StatsWidget({ widgetId, trades = [] }: StatWidgetProps) {
             {negativePnL > 0 ? (positivePnL / negativePnL).toFixed(2) : "∞"}
           </div>
         </div>
-        <div className="w-25 h-25">
+        <div className="w-20 h-25">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie

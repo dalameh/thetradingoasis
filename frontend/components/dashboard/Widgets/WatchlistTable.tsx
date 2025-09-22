@@ -65,7 +65,7 @@ export default function WatchlistTable({rpp} : WatchlistTableProps) {
                     <span className="text-4xl mb-2">📋</span>
                     <p className="text-sm">Your watchlist is empty.</p>
                     <p className="text-xs text-center">
-                        Add stocks or options to track them here. Once added, they’ll appear in your watchlist.
+                        Add stocks to your watchlist and they will appear here.
                     </p>
                 </div>
                 }

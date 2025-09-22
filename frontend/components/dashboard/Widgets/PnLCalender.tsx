@@ -90,7 +90,7 @@ export function PnlCalendar({ trades = [] }: PnlCalendarProps) {
           }`}
         >
           {/* Day number in top-right */}
-          <div className="absolute top-1 right-1 text-[11px] font-medium text-gray-500">
+          <div className="absolute top-1 right-1 text-[7px] sm:text-[11px] font-medium text-gray-500">
             {format(day, "d")}
           </div>
 
@@ -98,13 +98,13 @@ export function PnlCalendar({ trades = [] }: PnlCalendarProps) {
           {tradeCount > 0 && (
             <div className="flex flex-col items-center text-center leading-tight">
               <div
-                className={`font-semibold text-xs ${
+                className={`font-semibold text-[10px] ${
                   pnl >= 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
                 {pnl >= 0 ? `+${pnl}` : `${pnl}`}
               </div>
-              <div className="text-[10px] text-gray-500">
+              <div className="text-[7px] text-gray-500">
                 {tradeCount} {tradeCount > 1 ? "trades" : "trade"}
               </div>
             </div>
@@ -112,7 +112,7 @@ export function PnlCalendar({ trades = [] }: PnlCalendarProps) {
 
           {/* Holiday label */}
           {holidayName && (
-            <div className="flex justify-center items-center text-[9px] font-medium text-center px-1 truncate max-w-full">
+            <div className="flex justify-center items-center text-[7px] break-words font-medium text-center px-1 whitespace-normal max-w-full">
               {holidayName}
             </div>
           )}

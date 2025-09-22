@@ -20,7 +20,7 @@ interface DailyPnlChartProps {
 }
 
 export default function DailyPnlChart({ trades }: DailyPnlChartProps) {
-  const [timeframe, setTimeframe] = useState<Timeframe>("1m");
+  const [timeframe, setTimeframe] = useState<Timeframe>("2m");
   const [chartData, setChartData] = useState<{ date: string; pnl: number }[]>(
     []
   );
@@ -64,7 +64,7 @@ export default function DailyPnlChart({ trades }: DailyPnlChartProps) {
   return (
     <div className="flex flex-col gap-2 h-full">
       {/* Buttons */}
-      {/* <div className="flex justify-center gap-1">
+      <div className="flex justify-center gap-1">
          <button
           onClick={() => setTimeframe("2w")}
           className="px-2 py-0.5 text-xs bg-gray-200 rounded active:bg-green-300"
@@ -83,7 +83,7 @@ export default function DailyPnlChart({ trades }: DailyPnlChartProps) {
         >
           2 Months
         </button>
-      </div> */}
+      </div>
       <div className="flex-1 max-h-[175px] mt-3">
         {chartData.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%">
@@ -119,12 +119,14 @@ export default function DailyPnlChart({ trades }: DailyPnlChartProps) {
                         boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
                       }}
                     >
-                      ${pnl.toFixed(2)}
+                      {pnl < 0 ? `-$${Math.abs(pnl).toFixed(2)}` : `$${pnl.toFixed(2)}`}
                     </div>
                   );
                 }
                 return null;
               }}
+              wrapperStyle={{ position: "absolute", zIndex: 9999, pointerEvents: "none" }}
+
             />
 
             <Bar dataKey="pnl" radius={[4, 4, 0, 0]}>
