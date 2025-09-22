@@ -1,21 +1,11 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
 function SearchContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const searchParam = searchParams.get("search");
-
   const [input, setInput] = useState("");
-
-  // Populate input on initial load only
-  useEffect(() => {
-    if (searchParam) {
-      setInput(searchParam.toUpperCase());
-    }
-  }, [searchParam]); // run once on mount
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

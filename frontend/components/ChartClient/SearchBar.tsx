@@ -5,17 +5,7 @@ import { Search } from "lucide-react";
 
 function SearchContent() {
   const router = useRouter();
-  // const searchParams = useSearchParams();
-  // const tickerParam = searchParams.get("ticker");
-
   const [input, setInput] = useState("");
-
-  // Populate input on initial load only
-  // useEffect(() => {
-  //   if (tickerParam) {
-  //     setInput(tickerParam.toUpperCase());
-  //   }
-  // }, [tickerParam]); // run once on mount
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

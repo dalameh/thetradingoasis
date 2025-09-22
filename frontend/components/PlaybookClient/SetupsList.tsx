@@ -1,22 +1,32 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, Suspense } from "react";
 import SetupItem, { Setup } from "./SetupItem";
 import SetupForm from "./SetupFormModal";
 import { supabase } from "@/lib/supabaseFrontendClient";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 type SetupsListProps = {
   initialSetups: Setup[];
 };
 
-export default function SetupsList({ initialSetups }: SetupsListProps) {
+function SetupsContent({ initialSetups }: SetupsListProps) {
+  const searchParams = useSearchParams();
+  const createParam = searchParams.get("create");
+
   const [setups, setSetups] = useState<Setup[]>([]);
   const [loading, setLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [editingSetup, setEditingSetup] = useState<Setup | null>(null);
   const [isGuest, setIsGuest] = useState(false);
+
+  useEffect(() => {
+      if (createParam) {
+        setIsCreating(true);
+      }
+  }, [createParam]);
 
   // Load setups: either user setups or guest setups
   const fetchSetups = useCallback(async () => {
@@ -191,5 +201,13 @@ export default function SetupsList({ initialSetups }: SetupsListProps) {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SetupsList({ initialSetups }: SetupsListProps) {
+  return (
+    <Suspense fallback={<div className="text-center">Loading setups...</div>}>
+      <SetupsContent initialSetups={initialSetups} />
+    </Suspense>
   );
 }

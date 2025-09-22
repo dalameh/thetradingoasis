@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, Suspense} from 'react';
 import { useWatchlistStore } from '@/store/WatchlistStore';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import {isTradingDay, getESTDate } from '@/store/WatchlistStore'
+import { useSearchParams } from "next/navigation";
+
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -15,13 +17,22 @@ import {
 import { MoreHorizontal, BarChart3, Newspaper, NotebookPen, Trash2 , Plus} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export default function WatchlistPage() {
+function WatchlistContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const addParam = searchParams.get("add");
   const { watchlist, addTicker, removeTicker } = useWatchlistStore();
 
   const [showAdd, setShowAdd] = useState(false);
   const [input, setInput] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
+
+  // React to URL changes
+  useEffect(() => {
+    if (addParam) {
+      setShowAdd(true);
+    }
+  }, [addParam]);
 
   // Sorting
   const [sortKey, setSortKey] = useState<'ticker'|'price'|'changePct'>('ticker');
@@ -327,4 +338,12 @@ function SortButton({label,onClick,active,dir}:{label:string,onClick:()=>void,ac
       {active && <span className="text-xs text-black">{dir==='asc'?'↑':'↓'}</span>}
     </div>
   </button>
+}
+
+export default function WatchlistPage() {
+  return (
+    <Suspense fallback={<div className="text-center">Loading watchlist...</div>}>
+      <WatchlistContent />
+    </Suspense>
+  );
 }
