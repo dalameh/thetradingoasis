@@ -132,7 +132,7 @@ export default function OasisLandingPage() {
         transition={{ duration: 1, delay: 0.8 }}
       >
         <li>🌴 Flow through market trends with clarity using charts and technical scans </li>
-        <li>💧 Flow through headlines with refreshing sentiment insights</li>
+        <li>💧 Discover headlines with refreshing sentiment insights</li>
         <li>☀️ Nurture your portfolio with watchlists and personalized tracking</li>
         <li>🏜️ Journal your trades with notes, checklists, and photo reflections</li>
       </motion.ul>

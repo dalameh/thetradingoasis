@@ -143,11 +143,11 @@ function NewsContent() {
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
         <div className="bg-gray-100 rounded-xl p-6 flex flex-col justify-center">
           <h3 className="text-base font-semibold text-black mb-4 text-center">Sentiment Overview</h3>
-          {/* <Suspense fallback={<div className="h-72 flex items-center justify-center animate-pulse bg-gray-100 rounded-xl" />}>
+          <Suspense fallback={<div className="h-72 flex items-center justify-center animate-pulse bg-gray-100 rounded-xl" />}>
             <ErrorBoundary fallback={<div className="h-72 text-red-600 text-center">Could not load sentiment.</div>}>
               <SentimentIsland ticker = {searchForFetch} headlines={headlines} />
             </ErrorBoundary>
-          </Suspense> */}
+          </Suspense>
         </div>
 
         {/* --- News Table */}
@@ -158,21 +158,34 @@ function NewsContent() {
                 <button className="w-10 h-10 rounded-full border border-gray-400 bg-gray-200 opacity-40 cursor-not-allowed">&lsaquo;</button>
                 <button className="w-10 h-10 rounded-full border border-gray-400 bg-gray-200 opacity-40 cursor-not-allowed">&rsaquo;</button>
               </div>
+
               <div className="relative overflow-x-auto rounded-lg border border-gray-300 shadow-sm bg-white max-w-5xl mx-auto">
-                <table className="w-full border-collapse text-xs table-fixed">
+                <table className="w-full border-collapse text-xs sm:text-sm">
                   <thead className="bg-gray-400/40 sticky top-0 z-10">
                     <tr>
-                      <th className="px-4 py-4 text-center sm:text-left font-semibold text-gray-700 uppercase tracking-wider w-1/6">Source</th>
-                      <th className="px-4 py-4 text-center sm:text-left font-semibold text-gray-700 uppercase tracking-wider w-1/6">Date</th>
-                      <th className="px-4 py-4 text-center sm:text-left font-semibold text-gray-700 uppercase tracking-wider w-2/6">Title</th>
+                      <th className="px-2 sm:px-4 py-4 sm:py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-1/4 sm:w-1/6">
+                        Source
+                      </th>
+                      <th className="px-2 sm:px-4 py-4 sm:py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-1/4 sm:w-1/6">
+                        Date
+                      </th>
+                      <th className="px-2 sm:px-4 py-4 sm:py-4 text-left font-semibold text-gray-700 uppercase tracking-wider w-2/4 sm:w-2/6">
+                        Title
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {[...Array(5)].map((_, i) => (
                       <tr key={i} className="border-t border-gray-200">
-                        <td className="px-4 py-4 whitespace-nowrap"><div className="h-4 bg-gray-300 rounded w-16" /></td>
-                        <td className="px-4 py-4 whitespace-nowrap"><div className="h-4 bg-gray-300 rounded w-20" /></td>
-                        <td className="px-4 py-4 whitespace-nowrap"><div className="h-4 bg-gray-300 rounded w-40" /></td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap">
+                          <div className="h-3 sm:h-4 bg-gray-300 rounded w-12 sm:w-16" />
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap">
+                          <div className="h-3 sm:h-4 bg-gray-300 rounded w-16 sm:w-20" />
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-4 whitespace-nowrap">
+                          <div className="h-3 sm:h-4 bg-gray-300 rounded w-28 sm:w-40" />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
