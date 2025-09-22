@@ -184,7 +184,7 @@ export default function ScansPage() {
 
                 <div className="text-sm opacity-80 mb-1">{name === "Current" ? "" : "Avg Span"}</div>
 
-                <div className="text-md font-bold tracking-wide">
+                <div className="text-md text-center font-bold tracking-wide">
                   {regimeStats[name]
                     ? `${regimeStats[name][0].toFixed(2)} days`
                     : currRegime}
