@@ -3,9 +3,8 @@
   <img src="https://github.com/user-attachments/assets/8eeadb11-104a-4f4a-8e3c-9512adcd6148" width="400" height="400" alt="Copilot_20250730_140521-Photoroom" />
 </p>
 
-<p align="center">
-  <strong style="font-size: 32px;">The Trading Oasis 🌊📈</strong>
-</p>
+## The Trading Oasis 🌊📈
+
 
 Welcome to **The Trading Oasis**, a comprehensive trading and portfolio management app for investors and traders to explore market insights, track holdings, and log trades — all in one polished, interactive platform.  
 
