@@ -11,7 +11,7 @@ This project was built from scratch on a **$0 budget**, so while the backend may
 
 ## Overview
 
-The Trading Oasis is designed as a **prototype for active traders and investors**, combining real-time market data, sentiment analysis, and trade journaling. Built using **Next.js, Tailwind CSS, FastAPI, and Supabase**, it showcases how a modern trading dashboard can work without requiring expensive infrastructure.  
+The Trading Oasis is designed as a **prototype for active traders and investors**, combining real-time market data, sentiment analysis, and trade journaling. Built using **Next.js (Node.js), Tailwind CSS, TypeScript**, it showcases how a modern trading dashboard can work without requiring expensive infrastructure.  
 
 This project serves as both a **working demo** and a **template** for developers interested in full-stack financial apps.
 
