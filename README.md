@@ -1,5 +1,5 @@
 
-<img width="1024" height="1024" alt="Copilot_20250730_140521-Photoroom" src="https://github.com/user-attachments/assets/8eeadb11-104a-4f4a-8e3c-9512adcd6148" />
+<img width="400" height="400" alt="Copilot_20250730_140521-Photoroom" src="https://github.com/user-attachments/assets/8eeadb11-104a-4f4a-8e3c-9512adcd6148" />
 
 # The Trading Oasis 🌊📈
 
