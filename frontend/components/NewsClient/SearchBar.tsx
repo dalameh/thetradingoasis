@@ -20,7 +20,7 @@ function SearchContent() {
   };
 
   return (
-    <div className="bg-gray-100 flex justify-center mb-1 w-full max-w-sm mx-auto p-2 rounded-lg">
+    <div className="bg-gray-100 flex justify-center mb-3 w-full max-w-sm mx-auto p-2 rounded-lg">
       <form
         onSubmit={handleSearch}
         className="flex w-full space-x-2"

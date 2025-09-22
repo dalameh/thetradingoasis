@@ -4,11 +4,9 @@ import NewsContentMain from "@/components/NewsClient/NewsContent";
 
 export default function NewsPage() {
   return (
-    <main>
+    <main className="w-full h-full">
       <PageHeader title="Market News" />
-      <div         
-        className="min-h-screen p-8 pb-80 space-y-8"      
-      >
+      <div className="min-h-screen px-4 md:px-8 py-4 md:py-8 space-y-8">
         <SearchBar />
         <NewsContentMain />
       </div>
