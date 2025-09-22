@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+yfinance
+scipy
+numpy
+scikit-learn
+hmmlearn
+pandas
+plotly

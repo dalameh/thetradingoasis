@@ -56,7 +56,7 @@ This project serves as both a **working demo** and a **template** for developers
 - Scan tracked assets for market regimes (bullish/netural/bearish)
 - Identify trends, SMA-50 & SMA-200 crossovers
 
-### 7. **RESTful API**
+### 7. **Headline Sentiment RESTful API**
 - Built with **FastAPI**  
 - Endpoints for Headline Sentiment Analysis (CRUD Operations)
 - API documentation automatically available [here](https://9fhsjzmfui.us-east-1.awsapprunner.com/docs)
@@ -68,7 +68,14 @@ This project serves as both a **working demo** and a **template** for developers
 - **Frontend:** Next.js + TypeScript + Tailwind CSS  
   - Responsive, fast, and interactive UI  
   - Communicates with backend via REST API  
-- **Backend:** FastAPI + Uvicorn + Gunicorn, deployed on AWS App Runner  
+  
+- **Backend:** 
+  - FastAPI + Uvicorn + Gunicorn, deployed on AWS App Runner 
+  - Containerized and deployed multiple FastAPI microservices on AWS ECR and ECS
+  - Built Docker workflows with automated image tagging and secure authentication
+  - Managed API routing, environment variables, and scaling for production-ready services
+  - Implemented CI/CD pipelines to streamline updates and ensure reliable uptime
+
 - **Database:** Supabase (PostgreSQL)  
   - Persistent storage for trades, watchlists, and user info  
 

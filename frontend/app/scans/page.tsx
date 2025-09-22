@@ -1,64 +1,82 @@
 'use client';
 
-// import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PageHeader from '@/components/PageHeader';
-// import dynamic from 'next/dynamic';
-// import { Skeleton } from "@/components/ui/skeleton"; // shadcn/ui skeleton
-// import { Search, TrendingUp, TrendingDown, Activity, BarChart3 } from "lucide-react"
+import dynamic from 'next/dynamic';
+import { Skeleton } from "@/components/ui/skeleton"; // shadcn/ui skeleton
+import { Search, TrendingUp, TrendingDown, Activity, BarChart3 } from "lucide-react"
 
-// // Types
-// import type { Data, Layout, Config } from 'plotly.js';
+// Types
+import type { Data, Layout, Config } from 'plotly.js';
 
-// // Dynamically import Plotly for client only
-// const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
+// Dynamically import Plotly for client only
+const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
 export default function ScansPage() {
-  // const [symbol, setSymbol] = useState('SPY');
-  // const [figure, setFigure] = useState<{ data: Data[]; layout: Partial<Layout>; config: Partial<Config> } | null>(null);
-  // const [regimeStats, setRegimeStats] = useState<Record<string, [number, number]> | null>(null);
-  // const [currRegime, setCurrRegime] = useState('');
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState<string | null>(null);
-  // const [input, setInput] = useState(symbol);
+  const [symbol, setSymbol] = useState('SPY');
+  const [figure, setFigure] = useState<{ data: Data[]; layout: Partial<Layout>; config: Partial<Config> } | null>(null);
+  const [regimeStats, setRegimeStats] = useState<Record<string, [number, number]> | null>(null);
+  const [currRegime, setCurrRegime] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [input, setInput] = useState(symbol);
 
-  // useEffect(() => {
-  //   async function fetchPlot() {
-  //     setLoading(true);
-  //     setError(null);
-  //     setFigure(null);
+ useEffect(() => {
+  const controller = new AbortController();
+  const signal = controller.signal;
 
-  //     try {
-  //       const query = new URLSearchParams({ symbol }).toString();
-  //       const res = await fetch(`/api/hmmplot?${query}`);
+  async function fetchPlot() {
+    setLoading(true);
+    setError(null);
+    setFigure(null);
 
-  //       if (!res.ok) throw new Error(`Error fetching ${symbol} plot: ${res.status} ${res.statusText}`);
+    try {
+      const query = new URLSearchParams({ symbol }).toString();
+      const res = await fetch(`/api/hmmplot?${query}`, { signal });
 
-  //       const data = await res.json();
-  //       setFigure(data.figure);
-  //       setRegimeStats(data.regime_stats);
-  //       setCurrRegime(data.curr_regime);
-  //     } catch (err: any) {
-  //       setError(err.message || 'Unknown error');
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Error fetching ${symbol} plot: ${res.status} ${res.statusText} - ${text}`);
+      }
 
-  //   fetchPlot();
-  // }, [symbol]);
+      const data = await res.json();
+
+      if (!data?.figure) throw new Error("Invalid response from backend");
+
+      setFigure(data.figure);
+      setRegimeStats(data.regime_stats ?? null);
+      setCurrRegime(data.curr_regime ?? "");
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.name === "AbortError") return; // fetch was aborted
+        setError(err.message);
+      } else {
+        setError("Unknown error");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  fetchPlot();
+
+  // Cleanup: abort previous fetch if symbol changes
+  return () => controller.abort();
+}, [symbol]);
+
 
   return (
     <main>
       <PageHeader title="Scans" />
-      {/* <div className="max-w-5xl min-h-screen mx-auto px-6 py-8 flex flex-col gap-6">
-        Main Content 
+      <div className="max-w-5xl min-h-screen mx-auto px-6 py-8 flex flex-col gap-6">
+        {/* Main Content  */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
-           Plot 
+           {/* Plot  */}
           <div className="lg:col-span-3 bg-white p-5 rounded-xl shadow-lg border flex flex-col">
             <h2 className="text-xl font-bold text-gray-800 text-center">
               📊 3-State Gaussian HMM (KMeans Initialization)
             </h2>
-           Control Bar 
+           {/* Control Bar  */}
             <div className="bg-white flex flex-col sm:flex-row justify-center w-full max-w-xs mx-auto p-3">
               <form
                 onSubmit={(e) => {
@@ -72,7 +90,7 @@ export default function ScansPage() {
                 <input
                   type="text"
                   placeholder="Enter ticker or company (e.g. NVDA)"
-                  value={input}
+                  value={input.toUpperCase()}
                   onChange={(e) => setInput(e.target.value)} // update local input only
                   className="bg-white shadow-md text-black flex-grow min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   autoComplete="off"
@@ -118,7 +136,7 @@ export default function ScansPage() {
             </div>
           </div>
 
-           Stats — will stretch to match Plot height
+           {/* Stats — will stretch to match Plot height */}
           <div className="flex flex-col gap-4 h-full">
             {loading && (
               <>
@@ -177,7 +195,7 @@ export default function ScansPage() {
         )}
           </div>
         </div>
-      </div> */}
+      </div>
     </main>
   );
 }

@@ -13,9 +13,11 @@ export async function POST(req: Request) {
     if (!ticker || typeof ticker !== "string") {
       return NextResponse.json({ error: "Ticker is required" }, { status: 400 });
     }
-
+    
+    const SENTIMENT_SERVICE_URL = process.env.SENTIMENT_API_URL;
+    
     // 2. Call your deployed Python backend on Render
-    const response = await fetch("https://9fhsjzmfui.us-east-1.awsapprunner.com/api/sentiment", {
+    const response = await fetch(`${SENTIMENT_SERVICE_URL}/api/sentiment`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
