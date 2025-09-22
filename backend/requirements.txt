@@ -1,6 +1,6 @@
-fastapi
-uvicorn[standard]
-supabase
-pydantic
-numpy
-requests
+fastapi                 # Core FastAPI framework
+uvicorn[standard]       # ASGI server (for Gunicorn workers or dev)
+gunicorn                # Production server
+pydantic                # Data validation (FastAPI depends on it)
+requests                # HTTP requests (if your app uses it)
+numpy                   # Example numerical library (if used)
