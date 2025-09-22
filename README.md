@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  ## The Trading Oasis 🌊📈
+  <strong style="font-size: 32px;">The Trading Oasis 🌊📈</strong>
 </p>
 
 Welcome to **The Trading Oasis**, a comprehensive trading and portfolio management app for investors and traders to explore market insights, track holdings, and log trades — all in one polished, interactive platform.  
