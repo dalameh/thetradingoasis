@@ -59,7 +59,7 @@ This project serves as both a **working demo** and a **template** for developers
 ### 7. **Headline Sentiment RESTful API**
 - Built with **FastAPI**  
 - Endpoints for Headline Sentiment Analysis (CRUD Operations)
-- API documentation automatically available [here](https://9fhsjzmfui.us-east-1.awsapprunner.com/docs)
+- API documentation automatically available [here](https://63hik2jr4c.us-east-1.awsapprunner.com/docs)
 
 ---
 
@@ -91,7 +91,7 @@ This project serves as both a **working demo** and a **template** for developers
 ## Try it out!
 
 - Visit the live app: [thetradingoasis.vercel.app](https://thetradingoasis.vercel.app)  
-- Explore the **Swagger API**: [https://9fhsjzmfui.us-east-1.awsapprunner.com/docs](https://9fhsjzmfui.us-east-1.awsapprunner.com/docs)  
+- Explore the **Swagger API**: [https://9fhsjzmfui.us-east-1.awsapprunner.com/docs](https://63hik2jr4c.us-east-1.awsapprunner.com/docs)
 - Feel free to play with all features — add watchlists, log trades, and explore charts!  
 
 ---
