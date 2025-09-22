@@ -91,7 +91,8 @@ This project serves as both a **working demo** and a **template** for developers
 ## Try it out!
 
 - Visit the live app: [thetradingoasis.vercel.app](https://thetradingoasis.vercel.app)  
-- Explore the **Swagger API**: [https://9fhsjzmfui.us-east-1.awsapprunner.com/docs](https://63hik2jr4c.us-east-1.awsapprunner.com/docs)
+- Explore the **Swagger API**: Docs:** [Swagger / OpenAPI](https://63hik2jr4c.us-east-1.awsapprunner.com/docs)
+
 - Feel free to play with all features — add watchlists, log trades, and explore charts!  
 
 ---
