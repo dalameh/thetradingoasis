@@ -1,7 +1,6 @@
 version: 1.0
 runtime: python311
 
-# Build settings
 build:
   commands:
     build:
@@ -12,9 +11,5 @@ build:
       # Install all dependencies from requirements.txt
       - python3 -m pip install -r requirements.txt
 
-# Run settings
 run:
   command: python3 -m gunicorn -w 4 -k uvicorn.workers.UvicornWorker sentiment:app --bind 0.0.0.0:8080
-
-# TCP port App Runner will route traffic to
-port: 8080
