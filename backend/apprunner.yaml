@@ -3,13 +3,22 @@ runtime: python311
 
 build:
   commands:
-    pre-build:
-      - python3 -m pip install --upgrade pip
-      - python3 -m pip install fastapi uvicorn supabase pydantic numpy requests
     build:
-      - echo "Build completed."
-    post-build:
-      - echo "Post-build steps completed."
+      # Upgrade pip first
+      - python3 -m pip install --upgrade pip
+
+      # Optional: create a virtual environment to isolate packages
+      - python3 -m venv venv
+      - source venv/bin/activate
+
+      # Explicitly install uvicorn[standard] first
+      - pip install "uvicorn[standard]"
+
+      # Then install your requirements
+      - pip install -r requirements.txt
 
 run:
-  command: python3 -m uvicorn sentiment:app --host 0.0.0.0 --port 8080
+  command: >
+    # Activate virtual environment if used
+    source venv/bin/activate && 
+    python3 -m uvicorn sentiment:app --host 0.0.0.0 --port 8080
