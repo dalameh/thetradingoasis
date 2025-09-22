@@ -4,3 +4,4 @@ gunicorn                # Production server
 pydantic                # Data validation (FastAPI depends on it)
 requests                # HTTP requests (if your app uses it)
 numpy                   # Example numerical library (if used)
+supabase

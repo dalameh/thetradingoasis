@@ -126,7 +126,6 @@ export default function DailyPnlChart({ trades }: DailyPnlChartProps) {
                 return null;
               }}
               wrapperStyle={{ position: "absolute", zIndex: 9999, pointerEvents: "none" }}
-
             />
 
             <Bar dataKey="pnl" radius={[4, 4, 0, 0]}>
