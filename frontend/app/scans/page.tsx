@@ -77,36 +77,40 @@ export default function ScansPage() {
               📊 3-State Gaussian HMM (KMeans Initialization)
             </h2>
            {/* Control Bar  */}
-            <div className="bg-white flex flex-col sm:flex-row justify-center w-full max-w-xs mx-auto p-3">
+            <div className="bg-white flex flex-row items-center justify-center w-full max-w-xs mx-auto p-3">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (input.trim()) {
-                    setSymbol(input.toUpperCase()); // update symbol only on submit
-                  }
+                  if (input.trim()) setSymbol(input.trim().toUpperCase());
                 }}
-                className="flex flex-col sm:flex-row w-full sm:space-x-2 space-y-2 sm:space-y-0"
+                className="flex flex-row w-full space-x-2"
               >
                 <input
                   type="text"
+                  aria-label="Ticker symbol"
                   placeholder="Enter ticker or company (e.g. NVDA)"
-                  value={input.toUpperCase()}
-                  onChange={(e) => setInput(e.target.value)} // update local input only
-                  className="bg-white shadow-md text-black flex-grow min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  className="
+                    bg-white text-black
+                    text-sm sm:text-md
+                    placeholder:text-sm sm:placeholder:text-md
+                    shadow-md flex-grow min-w-0 px-4 py-2
+                    border border-gray-300 rounded-lg
+                    focus:outline-none focus:ring-2 focus:ring-blue-500
+                  "
                   autoComplete="off"
                 />
-
-                <div className="flex items-center justify-end">
-                  <button
-                    type="submit"
-                    disabled={!input.trim()}
-                    className="flex items-center gap-2 px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg"
-                  >
-                    <Search className="w-5 h-5 text-white" />
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  disabled={!input.trim()}
+                  className="flex items-center gap-2 px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg"
+                >
+                  <Search className="w-5 h-5 text-white" />
+                </button>
               </form>
             </div>
+
 
             {error && <div className="text-red-600 text-center">{error}</div>}
 
