@@ -71,7 +71,7 @@ This project serves as both a **working demo** and a **template** for developers
 ## Notes
 - Built on a $0 budget, so backend may have **slight cold starts** — please be patient for first requests.  
 - Fully functional, but still a **prototype**, so expect small tweaks and ongoing improvements.  
-- The frontend is optimized for interactivity.
+- The frontend is fully optimized for interactivity.
 
 ---
 
