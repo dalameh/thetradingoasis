@@ -13,7 +13,7 @@ While optimized for laptop/desktop, the app is fully **responsive and compatible
 This project was built from scratch on a **$0 budget**, so you may notice a slight cold start from backend deployed APIs, but everything else is ready to explore and enjoy. Don’t be shy — click around, try the features, and see what the app can do!  
 
 **Live App:** [thetradingoasis.vercel.app](https://thetradingoasis.vercel.app)  
-**Backend API Docs:** [Swagger / OpenAPI](https://9fhsjzmfui.us-east-1.awsapprunner.com/docs)
+**Backend API Docs:** [Swagger / OpenAPI](https://63hik2jr4c.us-east-1.awsapprunner.com/docs)
 
 ---
 
