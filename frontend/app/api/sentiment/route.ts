@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Call your deployed Python backend on Render
-    const response = await fetch(`${process.env.SENTIMENT_API_URL}`, {
+    const response = await fetch(`${process.env.SENTIMENT_API_URL}/api/sentiment`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
