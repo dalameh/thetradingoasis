@@ -58,7 +58,7 @@ This project serves as both a **working demo** and a **template** for developers
 
 ### 7. **RESTful API**
 - Built with **FastAPI**  
-- Endpoints for Headline Sentiment Analysis
+- Endpoints for Headline Sentiment Analysis (CRUD Operations)
 - API documentation automatically available [here](https://9fhsjzmfui.us-east-1.awsapprunner.com/docs)
 
 ---
