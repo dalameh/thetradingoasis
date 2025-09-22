@@ -53,7 +53,7 @@ This project serves as both a **working demo** and a **template** for developers
 - Helps structure strategies and recurring tasks
 
 ### 6. **Technical Scans**
-- Scan tracked assets for market regimes (bullish/netural/bearish)
+- Utilizing data anlaysis and supervised machine learning (KMeans) -- Scan assets for market regimes (bullish/netural/bearish)
 - Identify trends, SMA-50 & SMA-200 crossovers
 
 ### 7. **Headline Sentiment RESTful API**
