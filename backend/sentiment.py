@@ -87,7 +87,6 @@
 # | **Update** | `PUT /api/sentiment/{uuid}`    | Update metadata, i.e headlines or model   |
 # | **Delete** | `DELETE /api/sentiment/{uuid}` | Delete a stored summary                   |
 
-# backend/sentiment_api.py
 from fastapi import FastAPI, HTTPException, Header, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -401,7 +400,7 @@ def update_sentiment(id: str, body: SentimentRequest = Body(..., example={
         "Apple announces new iPhone 16",
         "Supply chain issues continue to worry investors"
     ],
-    "min_confidence": 0.8
+    "min_confidence": 0.7
 }), x_api_key: str = Header(...)):
     check_api_key(x_api_key)
     existing = supabase.table("sentiment_results").select("*").eq("id", id).execute()
