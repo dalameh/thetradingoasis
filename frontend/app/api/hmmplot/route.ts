@@ -11,8 +11,8 @@ export async function GET(req: Request) {
     const query = new URLSearchParams({ symbol, interval, start });
 
     // Replace with your AWS App Runner HMM service URL
-    const HMM_SERVICE_URL = process.env.HMM_API_URL;
-    
+    const HMM_SERVICE_URL = "https://pk2qxdpmrp.us-east-1.awsapprunner.com";
+
     const res = await fetch(`${HMM_SERVICE_URL}/api/hmmplot?${query.toString()}`);
     const data = await res.json() as { figure: object; regime_stats: object; curr_regime: string };
 
