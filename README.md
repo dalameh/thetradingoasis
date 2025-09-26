@@ -41,7 +41,7 @@ This project serves as both a **working demo** and a **template** for developers
 - Visualize price trends and SMA-200 indicators  
 - Supports candlestick and area chart views
 
-<img width="400" height="400" alt="image" src="https://github.com/user-attachments/assets/b3632739-54eb-46d4-9211-9c3e567a2d88" />
+<img width="1919" height="820" alt="image" src="https://github.com/user-attachments/assets/b3632739-54eb-46d4-9211-9c3e567a2d88" />
 
 ### 3. **News & Headlines**
 - View real-time market headlines and updates  
@@ -63,20 +63,20 @@ This project serves as both a **working demo** and a **template** for developers
 - Create step-by-step trading guides or personal checklists  
 - Helps structure strategies and recurring tasks
 
-<img width="400" height="400" alt="image" src="https://github.com/user-attachments/assets/7d935d3f-bcd4-438f-b9f0-f17f490c5157" />
+<img width="1919" height="820" alt="image" src="https://github.com/user-attachments/assets/7d935d3f-bcd4-438f-b9f0-f17f490c5157" />
 
 ### 7. **Technical Scans**
 - Utilizing data anlaysis and supervised machine learning (KMeans) -- Scan assets for market regimes (bullish/netural/bearish)
 - Identify trends, SMA-50 & SMA-200 crossovers
 
-<img width="400" height="400" alt="image" src="https://github.com/user-attachments/assets/7cbb9885-04db-47c9-b350-980f1dc55a51" />
+<img width="1919" height="400" alt="image" src="https://github.com/user-attachments/assets/7cbb9885-04db-47c9-b350-980f1dc55a51" />
 
 ### 8. **Headline Sentiment RESTful API**
 - Built with **FastAPI**  
 - Endpoints for Headline Sentiment Analysis (CRUD Operations)
 - API documentation automatically available [here](https://63hik2jr4c.us-east-1.awsapprunner.com/docs)
 
-<img width="400" height="400" alt="image" src="https://github.com/user-attachments/assets/4dbfc0ea-8d0d-45f3-bade-586b38fd51e8" />
+<img width="1919" height="820" alt="image" src="https://github.com/user-attachments/assets/4dbfc0ea-8d0d-45f3-bade-586b38fd51e8" />
 
 ---
 
