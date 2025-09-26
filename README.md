@@ -10,7 +10,7 @@ Welcome to **The Trading Oasis**, a comprehensive trading and portfolio manageme
 
 While optimized for laptop/desktop, the app is fully **responsive and compatible with tablets and smartphones**, providing a seamless experience across devices.  
 
-This project was built from scratch on a **$0 budget**, so you may notice a slight cold start from backend deployed APIs, but everything else is ready to explore and enjoy. Don’t be shy — click around, try the features, and see what the app can do!  
+This project was built from scratch on a **$0 budget**, so you may notice a slight cold start from frontend and backend deployed APIs, but everything else is ready to explore and enjoy. Don’t be shy — click around, try the features, and see what the app can do!  
 
 **Live App:** [thetradingoasis.vercel.app](https://thetradingoasis.vercel.app)  
 **Backend API Docs:** [Swagger / OpenAPI](https://63hik2jr4c.us-east-1.awsapprunner.com/docs)
