@@ -34,7 +34,7 @@ This project serves as both a **working demo** and a **template** for developers
 - Quick overview of user activity, trades, and portfolios  
 - Central hub for key analytics
 
-<img width="400" height="400" alt="image" src="https://github.com/user-attachments/assets/9e1daf9a-ddfe-4844-8911-0b2e970805d8" />
+<img width="1919" height="820" alt="image" src="https://github.com/user-attachments/assets/9e1daf9a-ddfe-4844-8911-0b2e970805d8" />
 
 ### 2. **Market Charts**
 - Interactive TradingView Lightweight Charts  
