@@ -47,6 +47,8 @@ This project serves as both a **working demo** and a **template** for developers
 - View real-time market headlines and updates  
 - Quickly assess market sentiment
 
+<img width="1919" height="820" alt="image" src="https://github.com/user-attachments/assets/4dbfc0ea-8d0d-45f3-bade-586b38fd51e8" />
+
 ### 4. **Watchlist**
 - View real-time market data using Websocket 
 - Personalized stock list
@@ -57,7 +59,9 @@ This project serves as both a **working demo** and a **template** for developers
 ### 5. **Trade Diary**
 - Record trades with details like quantity, price, and PnL  
 - Organize trades by date, symbol, or portfolio  
-- Add notes and photos for reference  
+- Add notes and photos for reference
+
+<img width="1917" height="819" alt="image" src="https://github.com/user-attachments/assets/a5c57bb3-e8eb-4680-8800-04962ff22073" />
 
 ### 6. **Playbook / Setup Checklist**
 - Create step-by-step trading guides or personal checklists  
@@ -69,14 +73,12 @@ This project serves as both a **working demo** and a **template** for developers
 - Utilizing data anlaysis and supervised machine learning (KMeans) -- Scan assets for market regimes (bullish/netural/bearish)
 - Identify trends, SMA-50 & SMA-200 crossovers
 
-<img width="1919" height="400" alt="image" src="https://github.com/user-attachments/assets/7cbb9885-04db-47c9-b350-980f1dc55a51" />
+<img width="1919" height="885" alt="image" src="https://github.com/user-attachments/assets/e4d185e2-87bd-4e8d-a549-27be7a3f27ec" />
 
 ### 8. **Headline Sentiment RESTful API**
 - Built with **FastAPI**  
 - Endpoints for Headline Sentiment Analysis (CRUD Operations)
 - API documentation automatically available [here](https://63hik2jr4c.us-east-1.awsapprunner.com/docs)
-
-<img width="1919" height="820" alt="image" src="https://github.com/user-attachments/assets/4dbfc0ea-8d0d-45f3-bade-586b38fd51e8" />
 
 ---
 
